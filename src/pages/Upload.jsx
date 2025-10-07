@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ChatbotButton from "../components/ChatbotButton";
+import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar";
+import ChatbotButton from "../components/ChatbotButton";
 
 export default function Upload({ username }) {
   const [file, setFile] = useState(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleFileChange = (e) => setFile(e.target.files[0]);
 
@@ -22,16 +24,14 @@ export default function Upload({ username }) {
       <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-50 flex flex-col items-center justify-center p-4">
         <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg flex flex-col gap-6">
           <h1 className="text-3xl font-bold text-green-700 text-center mb-4">
-            Upload Your Crop Image
+            {t('upload_crop_image')}
           </h1>
-          <p className="text-gray-600 text-center mb-6">
-            Choose a file from your device or take a picture with your camera.
-          </p>
+          <p className="text-gray-600 text-center mb-6">{t('choose_file')}</p>
 
           {/* Upload Buttons */}
           <div className="flex flex-col gap-4">
             <label className="bg-blue-500 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-blue-600 text-center">
-              Select from Files
+              {t('select_file')}
               <input
                 type="file"
                 accept="image/*"
@@ -41,7 +41,7 @@ export default function Upload({ username }) {
             </label>
 
             <label className="bg-green-500 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-green-600 text-center">
-              Take a Picture
+              {t('take_picture')}
               <input
                 type="file"
                 accept="image/*"
@@ -69,7 +69,7 @@ export default function Upload({ username }) {
               onClick={handleSubmit}
               className="mt-4 bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 transition-all w-full"
             >
-              Upload & See Results
+              {t('upload_results')}
             </button>
           )}
         </div>

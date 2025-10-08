@@ -4,22 +4,23 @@ export default function ChatbotButton() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
 
-  const GEMINI_API_URL = "https://your-gemini-api.onrender.com/chat"; // Replace with your Render URL
+  const GEMINI_API_URL = "https://chatbotserver-925w.onrender.com/chat";
 
   // Scroll to bottom when messages update
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
 
     const userMessage = { sender: "user", text: input, time: new Date() };
     setMessages((prev) => [...prev, userMessage]);
-
     setInput("");
+    setIsTyping(true); // show typing while waiting
 
     try {
       const response = await fetch(GEMINI_API_URL, {
@@ -29,7 +30,12 @@ export default function ChatbotButton() {
       });
       const data = await response.json();
 
-      const botMessage = { sender: "bot", text: data.reply, time: new Date() };
+      const botMessage = {
+        sender: "bot",
+        text: data.reply || "Sorry, I didn't get that.",
+        time: new Date(),
+      };
+
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error("Chatbot error:", error);
@@ -37,11 +43,13 @@ export default function ChatbotButton() {
         ...prev,
         { sender: "bot", text: "Error: Could not reach API.", time: new Date() },
       ]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
-  // Format timestamp
-  const formatTime = (date) => date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const formatTime = (date) =>
+    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   return (
     <>
@@ -59,7 +67,10 @@ export default function ChatbotButton() {
           {/* Header */}
           <div className="flex justify-between items-center bg-green-600 text-white p-2 rounded-t-lg">
             <span className="font-semibold">Chatbot</span>
-            <button onClick={() => setOpen(false)} className="font-bold hover:text-gray-200">
+            <button
+              onClick={() => setOpen(false)}
+              className="font-bold hover:text-gray-200"
+            >
               ✕
             </button>
           </div>
@@ -69,7 +80,9 @@ export default function ChatbotButton() {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
+                className={`flex flex-col ${
+                  msg.sender === "user" ? "items-end" : "items-start"
+                }`}
               >
                 <div
                   className={`max-w-[70%] px-3 py-2 rounded-lg ${
@@ -80,9 +93,23 @@ export default function ChatbotButton() {
                 >
                   {msg.text}
                 </div>
-                <span className="text-xs text-gray-400 mt-1">{formatTime(msg.time)}</span>
+                <span className="text-xs text-gray-400 mt-1">
+                  {formatTime(msg.time)}
+                </span>
               </div>
             ))}
+
+            {/* Typing indicator */}
+            {isTyping && (
+              <div className="flex items-center space-x-1 bg-gray-200 text-gray-800 px-3 py-2 rounded-lg w-fit rounded-bl-none animate-pulse">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-150"></div>
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-300"></div>
+                </div>
+              </div>
+            )}
+
             <div ref={chatEndRef} />
           </div>
 

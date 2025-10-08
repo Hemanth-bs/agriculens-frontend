@@ -45,6 +45,10 @@ export default function Navbar({ username, showAuthButtons = true }) {
               <option value="en">EN</option>
               <option value="hi">हिंदी</option>
               <option value="kn">ಕನ್ನಡ</option>
+              <option value="ta">தமிழ்</option>
+              <option value="te">తెలుగు</option>
+              <option value="ml">മലയാളം</option>
+
             </select>
           </div>
         )}

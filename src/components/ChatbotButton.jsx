@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function ChatbotButton() {
   const [open, setOpen] = useState(false);
+  const [maximized, setMaximized] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -9,7 +11,6 @@ export default function ChatbotButton() {
 
   const GEMINI_API_URL = "https://chatbotserver-925w.onrender.com/chat";
 
-  // Scroll to bottom when messages update
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
@@ -20,7 +21,7 @@ export default function ChatbotButton() {
     const userMessage = { sender: "user", text: input, time: new Date() };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
-    setIsTyping(true); // show typing while waiting
+    setIsTyping(true);
 
     try {
       const response = await fetch(GEMINI_API_URL, {
@@ -35,7 +36,6 @@ export default function ChatbotButton() {
         text: data.reply || "Sorry, I didn't get that.",
         time: new Date(),
       };
-
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error("Chatbot error:", error);
@@ -63,16 +63,32 @@ export default function ChatbotButton() {
 
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-20 right-6 w-80 h-96 bg-white border rounded-lg shadow-lg flex flex-col">
+        <div
+          className={`fixed bg-white border rounded-lg shadow-lg flex flex-col transition-all duration-300 ${
+            maximized
+              ? "w-[90vw] h-[80vh] bottom-10 right-5"
+              : "w-80 h-96 bottom-20 right-6"
+          }`}
+        >
           {/* Header */}
           <div className="flex justify-between items-center bg-green-600 text-white p-2 rounded-t-lg">
             <span className="font-semibold">Chatbot</span>
-            <button
-              onClick={() => setOpen(false)}
-              className="font-bold hover:text-gray-200"
-            >
-              ✕
-            </button>
+            <div className="flex gap-2">
+              {/* Maximize/Restore button */}
+              <button
+                onClick={() => setMaximized(!maximized)}
+                className="font-bold hover:text-gray-200"
+              >
+                {maximized ? "-" : "+"}
+              </button>
+              {/* Close button */}
+              <button
+                onClick={() => setOpen(false)}
+                className="font-bold hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {/* Chat messages */}
@@ -91,7 +107,11 @@ export default function ChatbotButton() {
                       : "bg-gray-200 text-gray-800 rounded-bl-none"
                   }`}
                 >
-                  {msg.text}
+                  {msg.sender === "bot" ? (
+                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  ) : (
+                    msg.text
+                  )}
                 </div>
                 <span className="text-xs text-gray-400 mt-1">
                   {formatTime(msg.time)}

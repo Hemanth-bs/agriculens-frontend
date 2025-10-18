@@ -5,6 +5,7 @@ export default function Navbar({
   username,
   setUser,
   showHomeButton = true,
+  showHistoryButton = true,
   showLogoutButton = true,
 }) {
   const navigate = useNavigate();
@@ -24,7 +25,10 @@ export default function Navbar({
   return (
     <nav className="w-full bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 cursor-pointer">
+        <div
+          className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 cursor-pointer"
+          onClick={() => navigate("/home")}
+        >
           <img
             src="/Agriculens_icon.png"
             alt="Agriculens Logo"
@@ -45,6 +49,15 @@ export default function Navbar({
             </button>
           )}
 
+          {showHistoryButton && (
+            <button
+              onClick={() => navigate("/history")}
+              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
+            >
+              {t("History")}
+            </button>
+          )}
+
           {showLogoutButton && (
             <button
               onClick={handleLogout}
@@ -58,7 +71,7 @@ export default function Navbar({
           <select
             value={i18n.language}
             onChange={(e) => changeLanguage(e.target.value)}
-            className="ml-2 border px-2 py-1 rounded"
+            className="border px-1 py-0.5 rounded text-sm w-16"
           >
             <option value="en">EN</option>
             <option value="hi">हिंदी</option>

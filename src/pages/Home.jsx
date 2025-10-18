@@ -13,7 +13,6 @@ export default function Home({ username, setUser }) {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Get user's geolocation
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) =>
@@ -22,7 +21,6 @@ export default function Home({ username, setUser }) {
     }
   }, []);
 
-  // Fetch weather when popup opens
   useEffect(() => {
     if (weatherOpen && coords.lat && coords.lon) {
       const fetchWeather = async () => {
@@ -45,8 +43,14 @@ export default function Home({ username, setUser }) {
 
   return (
     <>
-      {/* Navbar: only Logout button in Home */}
-      <Navbar username={username} setUser={setUser} showHomeButton={false} showLogoutButton={true} />
+      {/* Navbar: only Logout */}
+      <Navbar
+        username={username}
+        setUser={setUser}
+        showHomeButton={false}
+        showHistoryButton={false}
+        showLogoutButton={true}
+      />
 
       <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-50 flex flex-col items-center justify-center p-4">
         <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg flex flex-col items-center gap-6">
@@ -61,7 +65,7 @@ export default function Home({ username, setUser }) {
             {t("logged_in_as", { username })}
           </div>
 
-          {/* Upload Button remains here */}
+          {/* Upload Button */}
           <button
             onClick={() => navigate("/upload")}
             className="bg-green-600 text-white px-10 py-4 rounded-xl shadow hover:bg-green-700 transition-all text-lg w-full mt-4"
@@ -69,12 +73,16 @@ export default function Home({ username, setUser }) {
             {t("upload_image")}
           </button>
 
-          <div className="text-gray-500 text-sm mt-2 text-center">
-            {t("choose_file")}
-          </div>
+          {/* History Button */}
+          <button
+            onClick={() => navigate("/history")}
+            className="bg-yellow-500 text-white px-10 py-4 rounded-xl shadow hover:bg-yellow-600 transition-all text-lg w-full"
+          >
+            {t("View History")}
+          </button>
         </div>
 
-        {/* Weather Button (Left) */}
+        {/* Weather Button */}
         <button
           onClick={() => setWeatherOpen(!weatherOpen)}
           className="fixed bottom-6 left-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition"
@@ -105,12 +113,14 @@ export default function Home({ username, setUser }) {
                   <p className="text-sm">💧 {weatherData.humidity}% Humidity</p>
                 </>
               )}
-              {!loading && weatherData?.error && <p className="text-sm">{weatherData.error}</p>}
+              {!loading && weatherData?.error && (
+                <p className="text-sm">{weatherData.error}</p>
+              )}
             </div>
           </div>
         )}
 
-        {/* Chatbot Button (Right) */}
+        {/* Chatbot Button */}
         <ChatbotButton />
       </div>
     </>

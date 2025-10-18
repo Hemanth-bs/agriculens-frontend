@@ -9,7 +9,10 @@ export default function Results({ username, setUser }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Get prediction and weather from backend response
   const prediction = location.state?.prediction;
+  const weather = location.state?.weather;
 
   const [suggestions, setSuggestions] = useState("");
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -21,6 +24,10 @@ export default function Results({ username, setUser }) {
 
       setLoadingSuggestions(true);
       try {
+        const weatherInfo = weather
+          ? `Weather at time of prediction: ${weather.description}, Temperature: ${weather.temperature}°C, Humidity: ${weather.humidity}%, Location: ${weather.location_name}`
+          : "Weather information not available";
+
         const res = await fetch("https://chatbotserver-925w.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -30,10 +37,12 @@ Plant: ${prediction.plant || "Unknown"}
 Disease: ${prediction.disease || "Unknown"}
 Health Index: ${prediction.health_index || "N/A"}
 Confidence: ${prediction.confidence || "N/A"}
+${weatherInfo}
 
 Provide the following details:
 1. Chemical treatment — specify the exact chemical name, concentration (in mg or ml per litre), and duration (in days).
 2. Organic or natural treatment — specify materials, preparation method, dosage, and duration (in days).
+3. Weather-related suggestions based on the weather data above.
 
 Do NOT include any introductory phrases or summaries — start directly with the treatment details.`,
           }),
@@ -51,7 +60,12 @@ Do NOT include any introductory phrases or summaries — start directly with the
     };
 
     fetchSuggestions();
-  }, [prediction]);
+  }, [prediction, weather]);
+
+  const getDiseaseColor = (disease) => {
+    if (!disease) return "text-gray-600";
+    return disease.toLowerCase() === "healthy" ? "text-green-600" : "text-red-600";
+  };
 
   return (
     <>
@@ -70,7 +84,7 @@ Do NOT include any introductory phrases or summaries — start directly with the
 
           {prediction ? (
             <div className="flex flex-col items-center gap-6 w-full">
-              {/* Backend image */}
+              {/* Prediction Image */}
               {prediction.image_url ? (
                 <div className="w-full h-72 bg-gray-50 rounded-xl overflow-hidden shadow-inner border border-gray-200">
                   <img
@@ -84,24 +98,32 @@ Do NOT include any introductory phrases or summaries — start directly with the
               )}
 
               {/* Prediction Details */}
-<div className="mt-4 p-4 border rounded-lg w-full text-center shadow-sm bg-white space-y-2">
-  <h2 className="text-2xl font-bold text-green-700 flex flex-col items-center">
-    <span>{prediction.plant}</span>
-    <span className="text-xl text-red-600">{prediction.disease}</span>
-  </h2>
-  <p className="text-gray-700">
-    Confidence: {prediction.confidence.toFixed(2)}%
-  </p>
-  <p className="text-gray-700">
-    Health Index: {prediction.health_index}
-  </p>
-  <p className="text-gray-500 text-sm">
-    Predicted At: {new Date(prediction.created_at).toLocaleString()}
-  </p>
-  <p className="text-gray-500 text-sm">
-    Prediction: {prediction.prediction}
-  </p>
-</div>
+              <div className="mt-4 p-4 border rounded-lg w-full text-center shadow-sm bg-white space-y-2">
+                <h2 className="text-2xl font-bold flex flex-col items-center">
+                  <span className="text-green-700">{prediction.plant}</span>
+                  <span className={`text-xl ${getDiseaseColor(prediction.disease)}`}>
+                    {prediction.disease}
+                  </span>
+                </h2>
+                <p className="text-gray-700">
+                  Confidence: {prediction.confidence.toFixed(2)}%
+                </p>
+                <p className="text-gray-700">
+                  Health Index: {prediction.health_index}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Predicted At: {new Date(prediction.created_at).toLocaleString()}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Prediction: {prediction.prediction}
+                </p>
+                {/* Weather Details */}
+                {weather && (
+                  <p className="text-gray-600 text-sm mt-1">
+                    Weather: {weather.description}, Temp: {weather.temperature}°C, Humidity: {weather.humidity}%
+                  </p>
+                )}
+              </div>
 
               {/* Suggestions Button */}
               <button

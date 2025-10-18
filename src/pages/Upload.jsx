@@ -167,6 +167,9 @@ export default function Upload({ username, setUser }) {
                 className="hidden"
               />
             </label>
+            <div className="text-gray-500 text-sm mt-2 text-center">
+            {t("choose_file")}
+          </div>
           </div>
 
           {file && !croppedFile && (
@@ -214,6 +217,7 @@ export default function Upload({ username, setUser }) {
             </button>
           )}
         </div>
+        
 
         <ChatbotButton />
       </div>

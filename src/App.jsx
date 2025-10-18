@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Upload from "./pages/Upload";
 import Results from "./pages/Results";
+import History from "./pages/History";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 
@@ -72,6 +73,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+  path="/history"
+  element={
+    <ProtectedRoute username={user?.username}>
+      <History username={user?.username} setUser={setUser} />
+    </ProtectedRoute>
+  }
+/>
+
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />

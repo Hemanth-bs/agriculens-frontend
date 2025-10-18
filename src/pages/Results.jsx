@@ -25,7 +25,7 @@ export default function Results({ username, setUser }) {
       setLoadingSuggestions(true);
       try {
         const weatherInfo = weather
-          ? `Weather at time of prediction: ${weather.description}, Temperature: ${weather.temperature}°C, Humidity: ${weather.humidity}%, Location: ${weather.location_name}`
+          ? `Weather at time of prediction: ${weather.description}, Temperature: ${weather.temperature}°C, Humidity: ${weather.humidity}%, Latitutde: ${weather.lat}, Longitude: ${weather.lon}`
           : "Weather information not available";
 
         const res = await fetch("https://chatbotserver-925w.onrender.com/chat", {

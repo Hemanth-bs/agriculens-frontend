@@ -118,8 +118,13 @@ export default function Upload({ username, setUser }) {
 
       const data = await res.json();
       navigate("/results", {
-        state: { file: finalFile, username, prediction: data.prediction },
-      });
+  state: { 
+    file: finalFile,
+    username,
+    prediction: data.prediction,
+    weather: data.weather // <-- include this
+  }
+});
     } catch (error) {
       console.error("Error uploading image:", error);
       alert("Error uploading image. Make sure your file is valid and try again.");

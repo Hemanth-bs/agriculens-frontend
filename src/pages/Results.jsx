@@ -84,23 +84,24 @@ Do NOT include any introductory phrases or summaries — start directly with the
               )}
 
               {/* Prediction Details */}
-              <div className="mt-4 p-4 border rounded-lg w-full text-center shadow-sm bg-white space-y-2">
-                <h2 className="text-2xl font-bold text-green-700">
-                  {prediction.plant} — {prediction.disease}
-                </h2>
-                <p className="text-gray-700">
-                  Confidence: {prediction.confidence.toFixed(2)}%
-                </p>
-                <p className="text-gray-700">
-                  Health Index: {prediction.health_index}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Predicted At: {new Date(prediction.created_at).toLocaleString()}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Prediction: {prediction.prediction}
-                </p>
-              </div>
+<div className="mt-4 p-4 border rounded-lg w-full text-center shadow-sm bg-white space-y-2">
+  <h2 className="text-2xl font-bold text-green-700 flex flex-col items-center">
+    <span>{prediction.plant}</span>
+    <span className="text-xl text-red-600">{prediction.disease}</span>
+  </h2>
+  <p className="text-gray-700">
+    Confidence: {prediction.confidence.toFixed(2)}%
+  </p>
+  <p className="text-gray-700">
+    Health Index: {prediction.health_index}
+  </p>
+  <p className="text-gray-500 text-sm">
+    Predicted At: {new Date(prediction.created_at).toLocaleString()}
+  </p>
+  <p className="text-gray-500 text-sm">
+    Prediction: {prediction.prediction}
+  </p>
+</div>
 
               {/* Suggestions Button */}
               <button

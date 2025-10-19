@@ -97,8 +97,11 @@ export default function ChatPage({ username, setUser }) {
     if (!token) return;
 
     let currentChatId = activeChatId;
+    let isNewChat = false;
 
+    // If no chat exists yet (new chat window), create it now
     if (!currentChatId) {
+      isNewChat = true;
       try {
         const res = await fetch(`${API_BASE_URL}/chat`, {
           method: "POST",
@@ -112,7 +115,9 @@ export default function ChatPage({ username, setUser }) {
         if (!res.ok) throw new Error("Failed to create new chat session.");
         currentChatId = data.chat_id;
         setActiveChatId(currentChatId);
-        fetchChatList();
+
+        // Add new chat to sidebar
+        setChatList((prev) => [data, ...prev]);
       } catch (error) {
         console.error(error);
         showNotification("Could not start a new chat. Try again.");
@@ -144,6 +149,7 @@ export default function ChatPage({ username, setUser }) {
       const finalMessages = [...updatedMessages, botMessage];
       setMessages(finalMessages);
 
+      // Update backend chat messages
       await fetch(`${API_BASE_URL}/chat/${currentChatId}`, {
         method: "PUT",
         headers: {
@@ -253,6 +259,7 @@ export default function ChatPage({ username, setUser }) {
               <span className="text-lg font-semibold text-gray-700">Chats</span>
             </div>
 
+            {/* New Chat just opens a blank chat window */}
             <button
               onClick={() => {
                 setActiveChatId(null);
@@ -283,7 +290,7 @@ export default function ChatPage({ username, setUser }) {
                         : "border-transparent hover:border-green-400 hover:bg-gray-100"
                     }`}
                   >
-                    {chat.title} {/* full chat names */}
+                    {chat.title}
                   </button>
                   <button
                     onClick={() => setDeleteModalChat(chat)}

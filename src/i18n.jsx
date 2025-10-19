@@ -273,7 +273,7 @@ i18n.use(initReactI18next).init({
         welcome: "ಅಗ್ರಿಕುಲೆನ್ಸ್‌ಗೆ ಸ್ವಾಗತ",
         hello_user: "ಹಲೋ, {{username}}! ಬೆಳೆ ವಿಶ್ಲೇಷಣೆಗೆ ಸಿದ್ಧವೇ?",
         logged_in_as: "{{username}} ಆಗಿ ಲಾಗಿನ್ ಆಗಿದ್ದೀರಿ",
-        home: "ಮನೆ",
+        home: "ಹೋಮ್",
         logout: "ಲಾಗ್‌ಔಟ್",
         language: "ಭಾಷೆ",
         loading: "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
@@ -397,7 +397,7 @@ i18n.use(initReactI18next).init({
         welcome: "அக்ரிகுலென்ஸுக்கு வரவேற்கிறோம்",
         hello_user: "வணக்கம், {{username}}! உங்கள் பயிரை பகுப்பாய்வு செய்ய தயார்?",
         logged_in_as: "{{username}} என உள்நுழைந்துள்ளீர்கள்",
-        home: "முகப்பு",
+        home: "ஹோம்",
         logout: "வெளியேறு",
         language: "மொழி",
         loading: "ஏற்றுகிறது...",
@@ -762,11 +762,12 @@ i18n.use(initReactI18next).init({
           tomato_mosaic_virus: "തക്കാളി മൊസൈക്ക് വൈറസ്"
       }
     }
-  },
+  }
+},
 
   lng: localStorage.getItem("language") || "en",
   fallbackLng: "en",
   interpolation: { escapeValue: false }
-}});
+});
 
 export default i18n;

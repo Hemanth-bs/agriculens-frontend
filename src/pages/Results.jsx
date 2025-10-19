@@ -4,10 +4,51 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import Navbar from "../components/Navbar";
 import ChatbotButton from "../components/ChatbotButton";
-import i18n from "../i18n"; // import your i18n instance
+
+// Map i18n.language codes to friendly language names for chatbot
+const languageMap = {
+  en: "English",
+  hi: "Hindi",
+  kn: "Kannada",
+  ta: "Tamil",
+  te: "Telugu",
+  ml: "Malayalam"
+  // add more if needed
+};
+
+// Translate plant & disease from class_name safely
+const translateClassName = (className, t) => {
+  if (!className) return { plant: "Unknown", disease: "Unknown" };
+
+  const normalized = className.replace(/__+/g, "_").replace(/\s+/g, "_").toLowerCase();
+
+  let plantKey = null;
+  let diseaseKey = null;
+
+  const plants = t("plants", { returnObjects: true });
+  const diseases = t("diseases", { returnObjects: true });
+
+  // Find plant
+  Object.keys(plants).forEach((key) => {
+    if (normalized.startsWith(key.toLowerCase())) plantKey = key;
+  });
+
+  // Disease part
+  let diseasePart = plantKey ? normalized.slice(plantKey.length).replace(/^_+/, "") : "";
+
+  // Find disease
+  Object.keys(diseases).forEach((key) => {
+    if (diseasePart.includes(key.toLowerCase())) diseaseKey = key;
+  });
+
+  return {
+    plant: plantKey ? t(`plants.${plantKey}`) : className,
+    disease: diseaseKey ? t(`diseases.${diseaseKey}`) : diseasePart || "Unknown",
+  };
+};
 
 export default function Results({ username, setUser }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,36 +59,33 @@ export default function Results({ username, setUser }) {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Determine plant & disease from class_name
+  const { plant, disease } = prediction
+    ? translateClassName(prediction.class_name || prediction.prediction, t)
+    : { plant: "", disease: "" };
+
+  // Get friendly language name
+  const languageName = languageMap[i18n.language] || "English";
+
+  // Fetch chatbot suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!prediction) return;
-
       setLoadingSuggestions(true);
+
       try {
         const weatherInfo = weather
           ? `Weather at time of prediction: ${weather.description}, Temperature: ${weather.temperature}°C, Humidity: ${weather.humidity}%, Latitude: ${weather.lat}, Longitude: ${weather.lon}`
           : "Weather information not available";
 
-        // Map i18n language codes to readable names for chatbot
-        const langMap = {
-          en: "English",
-          hi: "Hindi",
-          kn: "Kannada",
-          ta: "Tamil",
-          te: "Telugu",
-          ml: "Malayalam",
-        };
-        const currentLang = langMap[i18n.language] || "English";
-
         const res = await fetch("https://chatbotserver-925w.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: `Respond in ${currentLang}.
-
+            message: `Respond in ${languageName}:
 Give clear, professional, and actionable plant treatment instructions based on this data:
-Plant: ${prediction.plant || "Unknown"}
-Disease: ${prediction.disease || "Unknown"}
+Plant: ${plant}
+Disease: ${disease}
 Health Index: ${prediction.health_index || "N/A"}
 Confidence: ${prediction.confidence || "N/A"}
 ${weatherInfo}
@@ -73,11 +111,14 @@ Do NOT include any introductions — start directly with the treatment details.`
     };
 
     fetchSuggestions();
-  }, [prediction, weather, t]);
+  }, [prediction, weather, plant, disease, t, languageName]);
 
-  const getDiseaseColor = (disease) => {
-    if (!disease) return "text-gray-600";
-    return disease.toLowerCase() === "healthy" ? "text-green-600" : "text-red-600";
+  // Determine disease color
+  const getDiseaseColor = (diseaseName) => {
+    if (!diseaseName) return "text-gray-600";
+    return diseaseName.toLowerCase() === t("diseases.healthy").toLowerCase()
+      ? "text-green-600"
+      : "text-red-600";
   };
 
   return (
@@ -113,16 +154,12 @@ Do NOT include any introductions — start directly with the treatment details.`
               {/* Prediction Details */}
               <div className="mt-4 p-4 border rounded-lg w-full text-center shadow-sm bg-white space-y-2">
                 <h2 className="text-2xl font-bold flex flex-col items-center">
-                  <span className="text-green-700">{prediction.plant}</span>
-                  <span className={`text-xl ${getDiseaseColor(prediction.disease)}`}>
-                    {prediction.disease}
-                  </span>
+                  <span className="text-green-700">{plant}</span>
+                  <span className={`text-xl ${getDiseaseColor(disease)}`}>{disease}</span>
                 </h2>
                 <p className="text-gray-700">
                   {t("confidence")}:{" "}
-                  {prediction.confidence
-                    ? `${prediction.confidence.toFixed(2)}%`
-                    : "N/A"}
+                  {prediction.confidence ? `${prediction.confidence.toFixed(2)}%` : "N/A"}
                 </p>
                 <p className="text-gray-700">
                   {t("health_index")}: {prediction.health_index || "N/A"}
@@ -139,7 +176,7 @@ Do NOT include any introductions — start directly with the treatment details.`
                 )}
                 {weather && (
                   <p className="text-gray-600 text-sm mt-1">
-                    {t("weather")}: {weather.description}, {t("temp")}: {weather.temperature}°C,{" "}
+                    {t("weather")}: {weather.description}, {t("temperature")}: {weather.temperature}°C,{" "}
                     {t("humidity")}: {weather.humidity}%
                   </p>
                 )}
@@ -158,9 +195,7 @@ Do NOT include any introductions — start directly with the treatment details.`
               {showSuggestions && (
                 <div className="mt-4 w-full p-4 border rounded-lg bg-gray-50 shadow-inner text-left max-h-96 overflow-y-auto">
                   {loadingSuggestions ? (
-                    <p className="text-gray-600 text-center">
-                      {t("loading_suggestions")}
-                    </p>
+                    <p className="text-gray-600 text-center">{t("loading_suggestions")}</p>
                   ) : (
                     <ReactMarkdown>{suggestions}</ReactMarkdown>
                   )}

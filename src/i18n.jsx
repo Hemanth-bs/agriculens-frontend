@@ -6,7 +6,7 @@ i18n.use(initReactI18next).init({
     en: {
       translation: {
         // General
-        welcome: "Welcome to Agriculens",
+         welcome: "Welcome to Agriculens",
         hello_user: "Hello, {{username}}! Ready to analyze your crops?",
         logged_in_as: "Logged in as {{username}}",
         home: "Home",
@@ -25,16 +25,18 @@ i18n.use(initReactI18next).init({
         temperature: "Temperature",
         weather_fetch_error: "Unable to fetch weather",
         view_history: "View History",
+
+        // History
         history: "History",
-          history_title: "Prediction History",
-  upload_new_image: "Upload New Image",
-  loading_history: "Loading history...",
-  no_predictions_yet: "No predictions yet. Upload one to get started!",
-  session_label: "Session",
-  cured_label: "✅ Cured",
-  ongoing_label: "🦠 Ongoing",
-  disease_label: "Disease",
-  health_index_label: "Health Index",
+        history_title: "Prediction History",
+        upload_new_image: "Upload New Image",
+        loading_history: "Loading history...",
+        no_predictions_yet: "No predictions yet. Upload one to get started!",
+        session_label: "Session",
+        cured_label: "✅ Cured",
+        ongoing_label: "🦠 Ongoing",
+        disease_label: "Disease",
+        health_index_label: "Health Index",
 
         // Upload Page
         upload_crop_image: "Upload Your Crop Image",
@@ -49,7 +51,6 @@ i18n.use(initReactI18next).init({
         crop_first: "Please crop the image first.",
         token_missing: "Access token missing. Please login again.",
         relogin_error: "The temporary token has expired. Please relogin to access your account.",
-        
 
         // Results
         results: "Results",
@@ -93,7 +94,49 @@ i18n.use(initReactI18next).init({
         chat_delete_failed: "Failed to delete chat.",
         confirm_delete_chat: "Are you sure you want to delete this chat?",
         analyzing: "Analyzing your image...",
-        error_message: "Something went wrong. Please try again."
+        error_message: "Something went wrong. Please try again.",
+
+        // Plants & Diseases for dynamic translation
+        plants: {
+          apple: "Apple",
+          blueberry: "Blueberry",
+          cherry: "Cherry",
+          corn: "Corn",
+          grape: "Grape",
+          orange: "Orange",
+          peach: "Peach",
+          pepper_bell: "Bell Pepper",
+          potato: "Potato",
+          raspberry: "Raspberry",
+          soybean: "Soybean",
+          squash: "Squash",
+          strawberry: "Strawberry",
+          tomato: "Tomato"
+        },
+        diseases: {
+          healthy: "Healthy",
+          apple_scab: "Apple Scab",
+          leaf_scorch: "Leaf Scorch",
+          black_rot: "Black Rot",
+          cedar_apple_rust: "Cedar Apple Rust",
+          powdery_mildew: "Powdery Mildew",
+          cercospora_leaf_spot: "Cercospora Leaf Spot",
+          gray_leaf_spot: "Gray Leaf Spot",
+          common_rust: "Common Rust",
+          northern_leaf_blight: "Northern Leaf Blight",
+          esca_black_measles: "Esca (Black Measles)",
+          leaf_bht: "Leaf bht (Isariopsis Leaf Spot)",
+          huanglongbing: "Huanglongbing (Citrus Greening)",
+          bacterial_spot: "Bacterial Spot",
+          early_blight: "Early Blight",
+          late_blight: "Late Blight",
+          leaf_mold: "Leaf Mold",
+          septoria_leaf_spot: "Septoria Leaf Spot",
+          spider_mites: "Two-spotted Spider Mite",
+          target_spot: "Target Spot",
+          yellow_leaf_curl_virus: "Tomato Yellow Leaf Curl Virus",
+          tomato_mosaic_virus: "Tomato Mosaic Virus"
+        }
       }
     },
 
@@ -181,7 +224,47 @@ i18n.use(initReactI18next).init({
         chat_delete_failed: "चैट हटाने में विफल।",
         confirm_delete_chat: "क्या आप वाकई इस चैट को हटाना चाहते हैं?",
         analyzing: "आपकी छवि का विश्लेषण किया जा रहा है...",
-        error_message: "कुछ गलत हुआ। कृपया पुनः प्रयास करें।"
+        error_message: "कुछ गलत हुआ। कृपया पुनः प्रयास करें।",
+        plants: {
+    apple: "सेब",
+    blueberry: "ब्लूबेरी",
+    cherry: "चेरी",
+    corn: "मक्का",
+    grape: "अंगूर",
+    orange: "संतरा",
+    peach: "पीच",
+    pepper_bell: "शिमला मिर्च",
+    potato: "आलू",
+    raspberry: "रास्पबेरी",
+    soybean: "सोयाबीन",
+    squash: "स्क्वैश",
+    strawberry: "स्ट्रॉबेरी",
+    tomato: "टमाटर"
+  },
+  diseases: {
+    healthy: "स्वस्थ",
+    apple_scab: "सेब का स्कैब",
+    leaf_scorch: "पत्ती का जलन",
+    black_rot: "काला सड़न",
+    cedar_apple_rust: "सिडर सेब जंग",
+    powdery_mildew: "पाउडरी मिल्ड्यू",
+    cercospora_leaf_spot: "सिरकोस्पोरा पत्ती धब्बा",
+    gray_leaf_spot: "धूसर पत्ती धब्बा",
+    common_rust: "सामान्य जंग",
+    northern_leaf_blight: "उत्तरी पत्ती ब्लाइट",
+    esca_black_measles: "एस्का (काले खसरा)",
+    leaf_bht: "पत्ती BHT (इसारियोप्सिस पत्ती धब्बा)",
+    huanglongbing: "ह्वांगलॉन्गबिंग (सिट्रस हरी बीमारी)",
+    bacterial_spot: "बैक्टीरियल धब्बा",
+    early_blight: "प्रारंभिक ब्लाइट",
+    late_blight: "देर से ब्लाइट",
+    leaf_mold: "पत्ती फफूंदी",
+    septoria_leaf_spot: "सेप्टोरिया पत्ती धब्बा",
+    spider_mites: "दो-धब्बे वाली मकड़ी की सूखी",
+    target_spot: "लक्ष्य धब्बा",
+    yellow_leaf_curl_virus: "टमाटर पीली पत्ती कर्ल वायरस",
+    tomato_mosaic_virus: "टमाटर मोज़ेक वायरस"
+  }
       }
     },
 
@@ -231,7 +314,7 @@ i18n.use(initReactI18next).init({
         results: "ಫಲಿತಾಂಶಗಳು",
         prediction_output: "ಅಂದಾಜಿನ ಫಲಿತಾಂಶ",
         no_image_available: "ಯಾವುದೇ ಚಿತ್ರ ಲಭ್ಯವಿಲ್ಲ",
-        confidence: "ಆತ್ಮವಿಶ್ವಾಸ",
+        confidence: "ವಿಶ್ವಾಸ",
         health_index: "ಆರೋಗ್ಯ ಸೂಚ್ಯಂಕ",
         predicted_at: "ಅಂದಾಜು ಮಾಡಿದ ಸಮಯ",
         prediction_label: "ಅಂದಾಜು",
@@ -265,7 +348,47 @@ i18n.use(initReactI18next).init({
         chat_delete_failed: "ಚಾಟ್ ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ.",
         confirm_delete_chat: "ಈ ಚಾಟ್ ಅನ್ನು ಅಳಿಸಲು ಖಚಿತವೇ?",
         analyzing: "ನಿಮ್ಮ ಚಿತ್ರವನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
-        error_message: "ಏನೋ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+        error_message: "ಏನೋ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+         plants: {
+    apple: "ಸೇಬು",
+    blueberry: "ಬ್ಲೂಬೆರ್ರಿ",
+    cherry: "ಚೆರ್ರಿ",
+    corn: "ಸೋಳೆ",
+    grape: "ದ್ರಾಕ್ಷಿ",
+    orange: "ಕಿತ್ತಳೆ",
+    peach: "ಪೀಚ್",
+    pepper_bell: "ಬೆಲ್ ಮೆಣಸು",
+    potato: "ಬಟಾಟೆ",
+    raspberry: "ರಾಸ್ಬೆರಿ",
+    soybean: "ಸಾಯ್ ಬಿನ್",
+    squash: "ಸ್ಕ್ವಾಷ್",
+    strawberry: "ಸ್ಟ್ರಾಬೆರಿ",
+    tomato: "ಟೊಮೇಟೋ"
+  },
+  diseases: {
+    healthy: "ಆರೋಗ್ಯವಂತು",
+    apple_scab: "ಸೇಬಿನ ಸ್ಕ್ಯಾಬ್",
+    leaf_scorch: "ಎಲೆ ಸುಡುವಿಕೆ",
+    black_rot: "ಕಪ್ಪು ಪಾರ್ಶ್ವದ ಹಾಳು",
+    cedar_apple_rust: "ಸಿಡರ್ ಸೇಬಿನ ಬಟ್ಟೆ",
+    powdery_mildew: "ಪುಡ್ರಿಯ ಮಿಲ್ಡ್ಯೂ",
+    cercospora_leaf_spot: "ಸೆರ್ಸೋಸ್ಪೋರಾ ಎಲೆ ಬಿಂದು",
+    gray_leaf_spot: "ಬೂದು ಎಲೆ ಬಿಂದು",
+    common_rust: "ಸಾಮಾನ್ಯ ಕಬ್ಬು",
+    northern_leaf_blight: "ಉತ್ತರ ಎಲೆ ಬ್ಲೈಟ್",
+    esca_black_measles: "ಎಸ್ಕಾ (ಕಪ್ಪು ಚಮ್ಮು)",
+    leaf_bht: "ಎಲೆ BHT (ಇಸಾರಿಯೋಪ್ಸಿಸ್ ಎಲೆ ಬಿಂದು)",
+    huanglongbing: "ಹುವಾಂಗ್ಲಾಂಗ್ಬಿಂಗ್ (ಸಿಟ್ರಸ್ ಹಸಿವು)",
+    bacterial_spot: "ಬ್ಯಾಕ್ಟೀರಿಯಲ್ ಸ್ಪಾಟ್",
+    early_blight: "ಮುಂಬರುವ ಬ್ಲೈಟ್",
+    late_blight: "ಹಿಂದಿನ ಬ್ಲೈಟ್",
+    leaf_mold: "ಎಲೆ ಪಾಕ",
+    septoria_leaf_spot: "ಸೆಪ್ಟೋರಿಯಾ ಎಲೆ ಬಿಂದು",
+    spider_mites: "ರಂಡು-ಬಿಂದು ಸಿಡುಕೀಟೆ",
+    target_spot: "ಟಾರ್ಗೆಟ್ ಸ್ಪಾಟ್",
+    yellow_leaf_curl_virus: "ಟೊಮೇಟೋ ಹಳದಿ ಎಲೆ ಸರ್ಪ ವೈರಸ್",
+    tomato_mosaic_virus: "ಟೊಮೇಟೋ ಮೋಸಾಯಿಕ್ ವೈರಸ್"
+  }
       }
     },
 
@@ -349,7 +472,47 @@ i18n.use(initReactI18next).init({
       ongoing_label: "🦠 தொடர்கிறது",
       disease_label: "நோய்",
       health_index_label: "ஆரோக்கிய குறியீடு",
-      upload_image: "படத்தை பதிவேற்றவும்"
+      upload_image: "படத்தை பதிவேற்றவும்",
+      plants: {
+    apple: "ஆப்பிள்",
+    blueberry: "ப்ளூபெர்ரி",
+    cherry: "செர்ரி",
+    corn: "சோளம்",
+    grape: "திராட்சை",
+    orange: "ஆரஞ்சு",
+    peach: "பீச்",
+    pepper_bell: "பெல் மிளகாய்",
+    potato: "உருளைக்கிழங்கு",
+    raspberry: "ராஸ்பெர்ரி",
+    soybean: "சோயா பீன்",
+    squash: "ஸ்குவாஷ்",
+    strawberry: "ஸ்ட்ராபெர்ரி",
+    tomato: "தக்காளி"
+  },
+  diseases: {
+    healthy: "ஆரோக்கியம்",
+    apple_scab: "ஆப்பிள் ஸ்காப்",
+    leaf_scorch: "இலை எரிவு",
+    black_rot: "கருப்பு கிழிப்பு",
+    cedar_apple_rust: "சீடர் ஆப்பிள் குப்பை",
+    powdery_mildew: "பவுடரி மில்டியூ",
+    cercospora_leaf_spot: "செர்கோஸ்போரா இலைப் புள்ளி",
+    gray_leaf_spot: "சாம்பல் இலைப் புள்ளி",
+    common_rust: "பொதுவான காப்பு",
+    northern_leaf_blight: "வடக்கு இலை பிளைட்",
+    esca_black_measles: "எஸ்கா (கருப்பு காசம்)",
+    leaf_bht: "இலை BHT (இசாரியோப்சிஸ் இலைப் புள்ளி)",
+    huanglongbing: "ஹுவாங்லாங்பிங் (சிட்ரஸ் பசுமை நோய்)",
+    bacterial_spot: "பாக்டீரிய ச்சு புள்ளி",
+    early_blight: "முன்னிலை பிளைட்",
+    late_blight: "பின்னணி பிளைட்",
+    leaf_mold: "இலை பூஞ்சை",
+    septoria_leaf_spot: "செப்டோரியா இலைப் புள்ளி",
+    spider_mites: "இரட்டை புள்ளி சிறிய கிள்ளி",
+    target_spot: "லட்சியம் புள்ளி",
+    yellow_leaf_curl_virus: "தக்காளி மஞ்சள் இலை கெர்ல் வைரஸ்",
+    tomato_mosaic_virus: "தக்காளி மொசைக் வைரஸ்"
+  }
       }
     },
 
@@ -433,7 +596,47 @@ i18n.use(initReactI18next).init({
       ongoing_label: "🦠 కొనసాగుతుంది",
       disease_label: "రోగం",
       health_index_label: "ఆరోగ్య సూచిక",
-      upload_image: "చిత్రాన్ని అప్లోడ్ చేయండి"
+      upload_image: "చిత్రాన్ని అప్లోడ్ చేయండి",
+        plants: {
+    apple: "సేవ్",
+    blueberry: "బ్లూబెర్రీ",
+    cherry: "చెర్రీ",
+    corn: "మొక్కజొన్న",
+    grape: "ద్రాక్ష",
+    orange: "కిత్తಳೆ",
+    peach: "పీచ్",
+    pepper_bell: "బెల్ మిర్చి",
+    potato: "ఆలూ",
+    raspberry: "రాస్ప్బెర్రీ",
+    soybean: "సోయాబీన్",
+    squash: "స్క్వాష్",
+    strawberry: "స్ట్రాబెర్రీ",
+    tomato: "టొమాటో"
+  },
+  diseases: {
+    healthy: "ఆరోగ్యంగా ఉంది",
+    apple_scab: "సేవ్ స్కాబ్",
+    leaf_scorch: "ఆకు కాలిపోయింది",
+    black_rot: "కట్టు నల్లటి పాడవ్వడం",
+    cedar_apple_rust: "సీడర్ సేవ్ రస్ట్",
+    powdery_mildew: "పొడిగల మిల్డ్యూ",
+    cercospora_leaf_spot: "సెర్కోస్పోరా ఆకు మచ్చ",
+    gray_leaf_spot: "గ్రీ ఆకు మచ్చ",
+    common_rust: "సాధారణ రస్ట్",
+    northern_leaf_blight: "ఉత్తర ఆకు బ్లైట్",
+    esca_black_measles: "ఎస్కా (నల్లటి చుమ్మలు)",
+    leaf_bht: "ఆకు BHT (ఇసారియోప్సిస్ ఆకు మచ్చ)",
+    huanglongbing: "హువాంగ్‌లాంగ్‌బింగ్ (సిట్రస్ హరితవ్యాధి)",
+    bacterial_spot: "బాక్టీరియల్ మచ్చ",
+    early_blight: "ముందస్తు బ్లైట్",
+    late_blight: "విలంబం బ్లైట్",
+    leaf_mold: "ఆకు ఫంగస్",
+    septoria_leaf_spot: "సెప్టోరియా ఆకు మచ్చ",
+    spider_mites: "రెండు-పాయింట్ స్పైడర్ మైట్",
+    target_spot: "లక్ష్య మచ్చ",
+    yellow_leaf_curl_virus: "టొమాటో పసుపు ఆకు కర్వ్ వైరస్",
+    tomato_mosaic_virus: "టొమాటో మోసాయిక్ వైరస్"
+  }
       }
     },
 
@@ -472,7 +675,7 @@ i18n.use(initReactI18next).init({
         results: "ഫലങ്ങൾ",
         prediction_output: "പ്രവചനം ഫലം",
         no_image_available: "ചിത്രം ലഭ്യമല്ല",
-        confidence: "ആത്മവിശ്വാസം",
+        confidence: "വിശ്വാസം",
         health_index: "ആരോഗ്യ സൂചിക",
         predicted_at: "പ്രവചിച്ചത്",
         prediction_label: "പ്രവചനം",
@@ -508,16 +711,55 @@ i18n.use(initReactI18next).init({
         analyzing: "നിങ്ങളുടെ ചിത്രം വിശകലനം ചെയ്യുന്നു...",
         error_message: "ഒരു പിശക് സംഭവിച്ചു. ദയവായി വീണ്ടും ശ്രമിക്കുക.",
         history: "ചരിത്രം",
-      history_title: "ഭാവികണക്കു ചരിത്രം",
-      upload_new_image: "പുതിയ ചിത്രം അപ്ലോഡ് ചെയ്യുക",
-      loading_history: "ചരിത്രം ലോഡ് ചെയ്യുന്നു...",
-      no_predictions_yet: "ഇന്നും കണക്കുകള്‍ ഒന്നും ഇല്ല. ആരംഭിക്കാന്‍ ഒന്ന് അപ്ലോഡ് ചെയ്യുക!",
-      session_label: "സെഷന്‍",
-      cured_label: "✅ സുഖം",
-      ongoing_label: "🦠 തുടരുന്നു",
-      disease_label: "രോഗം",
-      health_index_label: "ആരോഗ്യ സൂചകം",
-      upload_image: "ചിത്രം അപ്ലോഡ് ചെയ്യുക"
+        history_title: "ഭാവികണക്കു ചരിത്രം",
+        upload_new_image: "പുതിയ ചിത്രം അപ്ലോഡ് ചെയ്യുക",
+        loading_history: "ചരിത്രം ലോഡ് ചെയ്യുന്നു...",
+        no_predictions_yet: "ഇന്നും കണക്കുകള്‍ ഒന്നും ഇല്ല. ആരംഭിക്കാന്‍ ഒന്ന് അപ്ലോഡ് ചെയ്യുക!",
+        session_label: "സെഷന്‍",
+        cured_label: "✅ സുഖം",
+        ongoing_label: "🦠 തുടരുന്നു",
+        disease_label: "രോഗം",
+        health_index_label: "ആരോഗ്യ സൂചകം",
+        upload_image: "ചിത്രം അപ്ലോഡ് ചെയ്യുക",
+        plants: {
+          apple: "ആപ്പിൾ",
+          blueberry: "ബ്ലൂബെറി",
+          cherry: "ചെറി",
+          corn: "മക്ക",
+          grape: "മുന്തിരി",
+          orange: "ഓറഞ്ച്",
+          peach: "പീച്ച്",
+          pepper_bell: "ബെൽ പെപ്പർ",
+          potato: "ഉരുളകിഴങ്ങ്",
+          raspberry: "റാസ്ബെറി",
+          soybean: "സോയാബീൻ",
+          squash: "സ്ക്വാഷ്",
+          strawberry: "സ്റ്റ്രോബെറി",
+          tomato: "തക്കാളി"
+        },
+        diseases: {
+          healthy: "സുഖമായി",
+          apple_scab: "ആപ്പിൾ സ്‌കാബ്",
+          leaf_scorch: "ഇല തിളക്കം",
+          black_rot: "കറുത്ത പാടു",
+          cedar_apple_rust: "സീഡർ ആപ്പിൾ റസ്റ്റ്",
+          powdery_mildew: "പൗഡറി മിൽഡ്യൂ",
+          cercospora_leaf_spot: "സെർകോസ്പോറ ഇല പാടു",
+          gray_leaf_spot: "ചാര ഇല പാടു",
+          common_rust: "പൊതുവായ ജംഗ്",
+          northern_leaf_blight: "വടക്കൻ ഇല ബ്ലൈറ്റ്",
+          esca_black_measles: "എസ്കാ (കറുത്ത ചുമ)",
+          leaf_bht: "ഇല BHT (ഇസാരിയോപ്പ്സിസ് ഇല പാടു)",
+          huanglongbing: "ഹുവാങ്‌ലോംഗ്ബിങ് (സിറ്റ്രസ് പച്ചപാട്)",
+          bacterial_spot: "ബാക്ടീരിയൽ പാടു",
+          early_blight: "ആദ്യ ബ്ലൈറ്റ്",
+          late_blight: "കഴിഞ്ഞ ബ്ലൈറ്റ്",
+          leaf_mold: "ഇല ഫംഗസ്",
+          septoria_leaf_spot: "സെപ്റ്റോറിയ ഇല പാടു",
+          spider_mites: "രണ്ട്-പാട്ട് സ്പൈഡർ മൈറ്റ്",
+          target_spot: "ലക്ഷ്യ പാടു",
+          yellow_leaf_curl_virus: "തക്കാളി മഞ്ഞ ഇല കർൾ വൈറസ്",
+          tomato_mosaic_virus: "തക്കാളി മൊസൈക്ക് വൈറസ്"
       }
     }
   },
@@ -525,6 +767,6 @@ i18n.use(initReactI18next).init({
   lng: localStorage.getItem("language") || "en",
   fallbackLng: "en",
   interpolation: { escapeValue: false }
-});
+}});
 
 export default i18n;

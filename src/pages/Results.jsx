@@ -4,13 +4,13 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import Navbar from "../components/Navbar";
 import ChatbotButton from "../components/ChatbotButton";
+import i18n from "../i18n"; // import your i18n instance
 
 export default function Results({ username, setUser }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get prediction and weather from backend response
   const prediction = location.state?.prediction;
   const weather = location.state?.weather;
 
@@ -25,14 +25,27 @@ export default function Results({ username, setUser }) {
       setLoadingSuggestions(true);
       try {
         const weatherInfo = weather
-          ? `Weather at time of prediction: ${weather.description}, Temperature: ${weather.temperature}°C, Humidity: ${weather.humidity}%, Latitutde: ${weather.lat}, Longitude: ${weather.lon}`
+          ? `Weather at time of prediction: ${weather.description}, Temperature: ${weather.temperature}°C, Humidity: ${weather.humidity}%, Latitude: ${weather.lat}, Longitude: ${weather.lon}`
           : "Weather information not available";
+
+        // Map i18n language codes to readable names for chatbot
+        const langMap = {
+          en: "English",
+          hi: "Hindi",
+          kn: "Kannada",
+          ta: "Tamil",
+          te: "Telugu",
+          ml: "Malayalam",
+        };
+        const currentLang = langMap[i18n.language] || "English";
 
         const res = await fetch("https://chatbotserver-925w.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: `Give clear, professional, and actionable plant treatment instructions based on this data:
+            message: `Respond in ${currentLang}.
+
+Give clear, professional, and actionable plant treatment instructions based on this data:
 Plant: ${prediction.plant || "Unknown"}
 Disease: ${prediction.disease || "Unknown"}
 Health Index: ${prediction.health_index || "N/A"}
@@ -44,23 +57,23 @@ Provide the following details:
 2. Organic or natural treatment — specify materials, preparation method, dosage, and duration (in days).
 3. Weather-related suggestions based on the weather data above.
 
-Do NOT include any introductory phrases or summaries — start directly with the treatment details.`,
+Do NOT include any introductions — start directly with the treatment details.`,
           }),
         });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setSuggestions(data.reply || "No suggestions available.");
+        setSuggestions(data.reply || t("no_suggestions_available"));
       } catch (error) {
         console.error("Chatbot API error:", error);
-        setSuggestions("Failed to fetch suggestions.");
+        setSuggestions(t("failed_fetch_suggestions"));
       } finally {
         setLoadingSuggestions(false);
       }
     };
 
     fetchSuggestions();
-  }, [prediction, weather]);
+  }, [prediction, weather, t]);
 
   const getDiseaseColor = (disease) => {
     if (!disease) return "text-gray-600";
@@ -77,7 +90,7 @@ Do NOT include any introductory phrases or summaries — start directly with the
       />
 
       <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-50 flex flex-col items-center justify-center p-4">
-        <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg flex flex-col gap-6">
+        <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg flex flex-col gap-6 relative">
           <h1 className="text-3xl font-bold text-green-700 text-center mb-4">
             {t("results")}
           </h1>
@@ -89,12 +102,12 @@ Do NOT include any introductory phrases or summaries — start directly with the
                 <div className="w-full h-72 bg-gray-50 rounded-xl overflow-hidden shadow-inner border border-gray-200">
                   <img
                     src={prediction.image_url}
-                    alt="Prediction Output"
+                    alt={t("prediction_output")}
                     className="w-full h-full object-contain rounded-xl transition-transform duration-300 hover:scale-105"
                   />
                 </div>
               ) : (
-                <p className="text-gray-500 mt-4 text-center">No image available</p>
+                <p className="text-gray-500 mt-4 text-center">{t("no_image_available")}</p>
               )}
 
               {/* Prediction Details */}
@@ -106,58 +119,66 @@ Do NOT include any introductory phrases or summaries — start directly with the
                   </span>
                 </h2>
                 <p className="text-gray-700">
-                  Confidence: {prediction.confidence.toFixed(2)}%
+                  {t("confidence")}:{" "}
+                  {prediction.confidence
+                    ? `${prediction.confidence.toFixed(2)}%`
+                    : "N/A"}
                 </p>
                 <p className="text-gray-700">
-                  Health Index: {prediction.health_index}
+                  {t("health_index")}: {prediction.health_index || "N/A"}
                 </p>
                 <p className="text-gray-500 text-sm">
-                  Predicted At: {new Date(prediction.created_at).toLocaleString()}
+                  {prediction.created_at
+                    ? `${t("predicted_at")}: ${new Date(prediction.created_at).toLocaleString()}`
+                    : ""}
                 </p>
-                <p className="text-gray-500 text-sm">
-                  Prediction: {prediction.prediction}
-                </p>
-                {/* Weather Details */}
+                {prediction.prediction && (
+                  <p className="text-gray-500 text-sm">
+                    {t("prediction_label")}: {prediction.prediction}
+                  </p>
+                )}
                 {weather && (
                   <p className="text-gray-600 text-sm mt-1">
-                    Weather: {weather.description}, Temp: {weather.temperature}°C, Humidity: {weather.humidity}%
+                    {t("weather")}: {weather.description}, {t("temp")}: {weather.temperature}°C,{" "}
+                    {t("humidity")}: {weather.humidity}%
                   </p>
                 )}
               </div>
 
-              {/* Suggestions Button */}
+              {/* Suggestions */}
               <button
                 onClick={() => setShowSuggestions(!showSuggestions)}
                 className="mt-2 bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-all w-full"
               >
-                {showSuggestions ? "Hide Care Suggestions" : "Show Care Suggestions"}
+                {showSuggestions
+                  ? t("hide_care_suggestions")
+                  : t("show_care_suggestions")}
               </button>
 
-              {/* Suggestions Markdown */}
               {showSuggestions && (
                 <div className="mt-4 w-full p-4 border rounded-lg bg-gray-50 shadow-inner text-left max-h-96 overflow-y-auto">
                   {loadingSuggestions ? (
-                    <p className="text-gray-600 text-center">Loading suggestions...</p>
+                    <p className="text-gray-600 text-center">
+                      {t("loading_suggestions")}
+                    </p>
                   ) : (
                     <ReactMarkdown>{suggestions}</ReactMarkdown>
                   )}
                 </div>
               )}
 
-              {/* Upload Another Button */}
               <button
                 onClick={() => navigate("/upload")}
-                className="mt-4 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 w-full transition-all"
+                className="mt-4 bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 w-full transition-all"
               >
-                {t("Upload Another")}
+                {t("upload_another")}
               </button>
             </div>
           ) : (
-            <p className="text-red-500 text-center">{t("No Prediction")}</p>
+            <p className="text-red-500 text-center">{t("no_prediction")}</p>
           )}
         </div>
 
-        {/* Chatbot Button */}
         <ChatbotButton />
       </div>
     </>

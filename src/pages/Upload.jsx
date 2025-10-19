@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar";
 import ChatbotButton from "../components/ChatbotButton";
 import Cropper from "react-easy-crop";
-import getCroppedImg from "../utils/cropImage"; // helper function to get cropped blob
+import getCroppedImg from "../utils/cropImage";
 
 export default function Upload({ username, setUser }) {
   const [file, setFile] = useState(null);
@@ -19,7 +19,6 @@ export default function Upload({ username, setUser }) {
 
   const [coords, setCoords] = useState({ lat: 12.97, lon: 77.59 });
 
-  // Get user’s location
   const getLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -49,7 +48,6 @@ export default function Upload({ username, setUser }) {
     setCroppedFile(newCroppedFile);
   };
 
-  // Resize/compress for mobile
   const resizeImage = async (file, maxSize = 1024) =>
     new Promise((resolve) => {
       const img = new Image();
@@ -75,7 +73,7 @@ export default function Upload({ username, setUser }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!croppedFile && file) {
-      alert("Please crop the image first.");
+      alert(t("crop_first"));
       return;
     }
 
@@ -94,7 +92,7 @@ export default function Upload({ username, setUser }) {
       const token = userData?.token;
 
       if (!token) {
-        alert("Access token missing. Please login again.");
+        alert(t("token_missing"));
         setLoading(false);
         return;
       }
@@ -118,16 +116,16 @@ export default function Upload({ username, setUser }) {
 
       const data = await res.json();
       navigate("/results", {
-  state: { 
-    file: finalFile,
-    username,
-    prediction: data.prediction,
-    weather: data.weather // <-- include this
-  }
-});
+        state: { 
+          file: finalFile,
+          username,
+          prediction: data.prediction,
+          weather: data.weather
+        }
+      });
     } catch (error) {
       console.error("Error:", error);
-      alert("The temporary token has expired. Please relogin to access your account.");
+      alert(t("relogin_error"));
     } finally {
       setLoading(false);
     }
@@ -148,7 +146,7 @@ export default function Upload({ username, setUser }) {
             <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl z-10">
               <div className="flex flex-col items-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-green-600 mb-4"></div>
-                <p className="text-green-700 font-medium">Processing...</p>
+                <p className="text-green-700 font-medium">{t("processing")}</p>
               </div>
             </div>
           )}
@@ -173,8 +171,8 @@ export default function Upload({ username, setUser }) {
               />
             </label>
             <div className="text-gray-500 text-sm mt-2 text-center">
-            {t("choose_file")}
-          </div>
+              {t("choose_file")}
+            </div>
           </div>
 
           {file && !croppedFile && (
@@ -196,7 +194,7 @@ export default function Upload({ username, setUser }) {
               onClick={handleCropSubmit}
               className="mt-4 bg-yellow-500 text-white py-3 rounded-lg hover:bg-yellow-600 transition-all w-full"
             >
-              Crop Image
+              {t("crop_image")}
             </button>
           )}
 
@@ -204,7 +202,7 @@ export default function Upload({ username, setUser }) {
             <div className="mt-4 flex flex-col items-center">
               <img
                 src={URL.createObjectURL(croppedFile)}
-                alt="Cropped Preview"
+                alt={t("cropped_preview")}
                 className="w-full h-64 object-contain rounded-xl shadow-md"
               />
             </div>
@@ -218,11 +216,10 @@ export default function Upload({ username, setUser }) {
                 loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-700 hover:bg-green-800"
               }`}
             >
-              {loading ? "Processing..." : t("upload_results")}
+              {loading ? t("processing") : t("upload_results")}
             </button>
           )}
         </div>
-        
 
         <ChatbotButton />
       </div>

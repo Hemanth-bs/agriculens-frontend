@@ -32,18 +32,17 @@ export default function Home({ username, setUser }) {
           const data = await res.json();
           setWeatherData(data.weather);
         } catch (e) {
-          setWeatherData({ error: "Unable to fetch weather" });
+          setWeatherData({ error: t("weather_fetch_error") });
         } finally {
           setLoading(false);
         }
       };
       fetchWeather();
     }
-  }, [weatherOpen, coords]);
+  }, [weatherOpen, coords, t]);
 
   return (
     <>
-      {/* Navbar: only Logout */}
       <Navbar
         username={username}
         setUser={setUser}
@@ -78,7 +77,7 @@ export default function Home({ username, setUser }) {
             onClick={() => navigate("/history")}
             className="bg-yellow-500 text-white px-10 py-4 rounded-xl shadow hover:bg-yellow-600 transition-all text-lg w-full"
           >
-            {t("View History")}
+            {t("view_history")}
           </button>
         </div>
 
@@ -94,7 +93,7 @@ export default function Home({ username, setUser }) {
         {weatherOpen && (
           <div className="fixed bottom-16 left-6 w-80 bg-white border rounded-lg shadow-lg flex flex-col">
             <div className="flex justify-between items-center bg-blue-600 text-white p-2 rounded-t-lg">
-              <span className="font-semibold">Weather</span>
+              <span className="font-semibold">{t("weather")}</span>
               <button
                 onClick={() => setWeatherOpen(false)}
                 className="font-bold hover:text-gray-200"
@@ -103,14 +102,14 @@ export default function Home({ username, setUser }) {
               </button>
             </div>
             <div className="p-3 text-blue-800 flex flex-col gap-2">
-              {loading && <p>Loading...</p>}
+              {loading && <p>{t("loading")}</p>}
               {!loading && weatherData && !weatherData.error && (
                 <>
                   <p className="text-sm font-semibold capitalize">
                     {weatherData.description}
                   </p>
                   <p className="text-sm">🌡 {weatherData.temperature}°C</p>
-                  <p className="text-sm">💧 {weatherData.humidity}% Humidity</p>
+                  <p className="text-sm">💧 {weatherData.humidity}% {t("humidity")}</p>
                 </>
               )}
               {!loading && weatherData?.error && (
@@ -120,7 +119,6 @@ export default function Home({ username, setUser }) {
           </div>
         )}
 
-        {/* Chatbot Button */}
         <ChatbotButton />
       </div>
     </>

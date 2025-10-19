@@ -7,7 +7,7 @@ const API_BASE_URL = "https://mithun23112005-agriculens.hf.space";
 const GEMINI_API_URL = "https://chatbotserver-925w.onrender.com/chat";
 
 export default function ChatPage({ username, setUser }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -50,9 +50,9 @@ export default function ChatPage({ username, setUser }) {
       }
     } catch (error) {
       console.error("Failed to fetch chat list:", error);
-      showNotification("Failed to load chats.");
+      showNotification(t("chat_list_failed"));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchChatList();
@@ -82,14 +82,14 @@ export default function ChatPage({ username, setUser }) {
         }
       } catch (error) {
         console.error(error);
-        showNotification("Failed to load messages.");
+        showNotification(t("messages_load_failed"));
       } finally {
         setIsTyping(false);
       }
     };
 
     fetchMessages();
-  }, [activeChatId]);
+  }, [activeChatId, t]);
 
   const sendMessage = async () => {
     if (!input.trim() || isTyping) return;
@@ -99,7 +99,6 @@ export default function ChatPage({ username, setUser }) {
     let currentChatId = activeChatId;
     let isNewChat = false;
 
-    // If no chat exists yet (new chat window), create it now
     if (!currentChatId) {
       isNewChat = true;
       try {
@@ -115,12 +114,10 @@ export default function ChatPage({ username, setUser }) {
         if (!res.ok) throw new Error("Failed to create new chat session.");
         currentChatId = data.chat_id;
         setActiveChatId(currentChatId);
-
-        // Add new chat to sidebar
         setChatList((prev) => [data, ...prev]);
       } catch (error) {
         console.error(error);
-        showNotification("Could not start a new chat. Try again.");
+        showNotification(t("chat_create_failed"));
         return;
       }
     }
@@ -143,13 +140,12 @@ export default function ChatPage({ username, setUser }) {
       const data = await response.json();
       const botMessage = {
         sender: "bot",
-        text: data.reply || "Sorry, I am unable to respond right now.",
+        text: data.reply || t("bot_unavailable"),
         time: new Date(),
       };
       const finalMessages = [...updatedMessages, botMessage];
       setMessages(finalMessages);
 
-      // Update backend chat messages
       await fetch(`${API_BASE_URL}/chat/${currentChatId}`, {
         method: "PUT",
         headers: {
@@ -168,7 +164,7 @@ export default function ChatPage({ username, setUser }) {
       console.error(error);
       setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: "Error: Could not process message.", time: new Date() },
+        { sender: "bot", text: t("bot_error"), time: new Date() },
       ]);
     } finally {
       setIsTyping(false);
@@ -191,10 +187,10 @@ export default function ChatPage({ username, setUser }) {
         setActiveChatId(null);
         setMessages([]);
       }
-      showNotification("Chat deleted successfully.");
+      showNotification(t("chat_deleted"));
     } catch (error) {
       console.error(error);
-      showNotification("Could not delete chat.");
+      showNotification(t("chat_delete_failed"));
     } finally {
       setDeleteModalChat(null);
     }
@@ -205,7 +201,7 @@ export default function ChatPage({ username, setUser }) {
       <Navbar
         username={username}
         setUser={setUser}
-        showHomeButton={true}
+        showHomeButton
         showLogoutButton={false}
         showHistoryButton={false}
       />
@@ -220,20 +216,20 @@ export default function ChatPage({ username, setUser }) {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-80 text-center">
             <p className="mb-4 font-semibold">
-              Are you sure you want to delete "{deleteModalChat.title}"?
+              {t("confirm_delete_chat", { title: deleteModalChat.title })}
             </p>
             <div className="flex justify-around">
               <button
                 onClick={() => handleDeleteChat(deleteModalChat.chat_id)}
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               >
-                Yes
+                {t("yes")}
               </button>
               <button
                 onClick={() => setDeleteModalChat(null)}
                 className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
               >
-                No
+                {t("no")}
               </button>
             </div>
           </div>
@@ -241,7 +237,6 @@ export default function ChatPage({ username, setUser }) {
       )}
 
       <div className="flex flex-1 overflow-hidden min-h-0">
-        {/* Sidebar */}
         <aside
           className={`bg-gray-50 border-r flex flex-col overflow-hidden transform transition-transform duration-300 ease-in-out
             ${isSidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-0"}
@@ -256,10 +251,9 @@ export default function ChatPage({ username, setUser }) {
               >
                 &#10005;
               </button>
-              <span className="text-lg font-semibold text-gray-700">Chats</span>
+              <span className="text-lg font-semibold text-gray-700">{t("chats")}</span>
             </div>
 
-            {/* New Chat just opens a blank chat window */}
             <button
               onClick={() => {
                 setActiveChatId(null);
@@ -271,7 +265,7 @@ export default function ChatPage({ username, setUser }) {
               <span className="flex items-center justify-center w-5 h-5 bg-green-200 text-green-800 rounded-full text-[10px] font-bold leading-none">
                 +
               </span>
-              New Chat
+              {t("new_chat")}
             </button>
           </div>
 
@@ -295,7 +289,7 @@ export default function ChatPage({ username, setUser }) {
                   <button
                     onClick={() => setDeleteModalChat(chat)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500 opacity-0 group-hover:opacity-100 transition text-lg font-bold"
-                    title="Delete chat"
+                    title={t("delete_chat")}
                   >
                     X
                   </button>
@@ -305,7 +299,6 @@ export default function ChatPage({ username, setUser }) {
           </nav>
         </aside>
 
-        {/* Hamburger */}
         {!isSidebarOpen && (
           <button
             onClick={() => setIsSidebarOpen(true)}
@@ -315,7 +308,6 @@ export default function ChatPage({ username, setUser }) {
           </button>
         )}
 
-        {/* Chat Window */}
         <main className="flex-1 flex flex-col min-h-0 transition-all duration-300 relative">
           <div className="flex-1 flex flex-col overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && !isTyping && (
@@ -325,15 +317,13 @@ export default function ChatPage({ username, setUser }) {
                   alt="Logo"
                   className="w-16 h-16 mb-4"
                 />
-                <h2 className="text-xl">How can I help you today?</h2>
+                <h2 className="text-xl">{t("chat_welcome")}</h2>
               </div>
             )}
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex flex-col ${
-                  msg.sender === "user" ? "items-end" : "items-start"
-                }`}
+                className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
               >
                 <div
                   className={`max-w-[75%] px-4 py-2 rounded-lg prose prose-sm ${
@@ -344,9 +334,7 @@ export default function ChatPage({ username, setUser }) {
                 >
                   <ReactMarkdown>{msg.text}</ReactMarkdown>
                 </div>
-                <span className="text-xs text-gray-400 mt-1">
-                  {formatTime(msg.time)}
-                </span>
+                <span className="text-xs text-gray-400 mt-1">{formatTime(msg.time)}</span>
               </div>
             ))}
             {isTyping && (
@@ -367,7 +355,7 @@ export default function ChatPage({ username, setUser }) {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Message Agri-Assistant..."
+                placeholder={t("message_placeholder")}
                 className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               />
@@ -376,7 +364,7 @@ export default function ChatPage({ username, setUser }) {
                 disabled={isTyping}
                 className="bg-green-600 text-white px-5 py-2 rounded-full hover:bg-green-700 transition disabled:bg-gray-400"
               >
-                Send
+                {t("send")}
               </button>
             </div>
           </div>

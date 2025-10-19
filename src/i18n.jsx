@@ -296,7 +296,7 @@ i18n.use(initReactI18next).init({
       no_predictions_yet: "ಇನ್ನೂ ಯಾವುದೇ ಭವಿಷ್ಯವಾಣಿ ಇಲ್ಲ. ಪ್ರಾರಂಭಿಸಲು ಒಂದನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ!",
       session_label: "ಸೆಷನ್",
       cured_label: "✅ ಗುಣಮುಖವಾಗಿದೆ",
-      ongoing_label: "🦠 جاري",
+      ongoing_label: "🦠 ನಡೆಯುತ್ತಿದೆ",
       disease_label: "ರೋಗ",
       health_index_label: "ಆರೋಗ್ಯ ಸೂಚ್ಯಂಕ",
       upload_image: "ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar";
@@ -9,7 +9,7 @@ export default function History({ username, setUser }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openGroups, setOpenGroups] = useState({});
-  const [, setLang] = useState(i18n.language); // force re-render on language change
+  const [, setLang] = useState(i18n.language); 
   const navigate = useNavigate();
 
   // Force re-render when language changes
@@ -20,78 +20,163 @@ export default function History({ username, setUser }) {
   }, [i18n]);
 
   // Fetch history from API
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (!user || !user.token) return;
-
-        const res = await fetch(
-          "https://mithun23112005-agriculens.hf.space/history",
-          {
-            method: "GET",
-            headers: { Authorization: `Bearer ${user.token}` },
-          }
-        );
-
-        if (!res.ok) throw new Error("Failed to fetch history");
-        const data = await res.json();
-        setHistory(data.history || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
+  const fetchHistory = useCallback(async () => {
+    setLoading(true);
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user || !user.token) {
         setLoading(false);
+        return;
       }
-    };
+      const token = user.token;
 
+      const res = await fetch(
+        "https://mithun23112005-agriculens.hf.space/history",
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!res.ok) {
+          if (res.status === 401) {
+              console.error("Authentication failed. Redirecting.");
+              localStorage.removeItem("user");
+              navigate("/login");
+            }
+          throw new Error("Failed to fetch history: ${res.statusText}");
+      }
+      
+      const data = await res.json();
+      setHistory(data.history || []);
+    } catch (err) {
+      console.error("Error fetching history:", err);
+      setHistory([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]); // Added navigate to dependency array
+
+  useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [fetchHistory]);
 
   const toggleGroup = (key) => {
     setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Group sessions by plant & disease logic
+  // #############################################################
+  // # CORE LOGIC REPLACEMENT: Strict Session Grouping & Curing  #
+  // #############################################################
+
   const groupedHistory = history
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     .reduce((acc, item) => {
       const plantKey = item.plant;
-      const disease = item.latest_disease?.toLowerCase();
+      // Clean and normalize the disease name for the session key
+      const disease = item.latest_disease?.toLowerCase().replace(/[^a-z0-9]/g, '_');
       const isHealthy = disease === "healthy" || item.cured;
 
-      if (!acc[plantKey]) acc[plantKey] = [];
+      // Initialize structures: plantData holds sessions and the counter
+      if (!acc[plantKey]) acc[plantKey] = {
+        sessions: {}, 
+        nextSessionId: 1 // Counter for the next disease outbreak
+      };
 
-      const sessions = acc[plantKey];
-      const lastSession = sessions[sessions.length - 1];
-      const lastItem = lastSession ? lastSession[lastSession.length - 1] : null;
+      const plantData = acc[plantKey];
+      const plantSessions = plantData.sessions;
+      
+      // --- Update/Initialize Session ---
 
       if (!isHealthy) {
-        if (
-          !lastSession ||
-          lastSession.some((i) => i.cured || i.latest_disease.toLowerCase() === "healthy") ||
-          (lastItem && lastItem.latest_disease.toLowerCase() !== disease)
-        ) {
-          sessions.push([item]);
-        } else {
-          lastSession.push(item);
+        // --- LOGIC FOR DISEASED IMAGE / HANDLING RECURRENCE ---
+        
+        const baseKey = `${plantKey}__${disease}`;
+        
+        // 1. Try to find an existing ongoing session for this disease
+        let currentSessionKey = Object.keys(plantSessions).find(key => 
+            key.startsWith(baseKey) && !plantSessions[key].cured
+        );
+
+        // 2. If no ongoing session exists (i.e., the disease is reappearing or is new), create a unique key
+        if (!currentSessionKey) {
+            currentSessionKey = `${baseKey}__${plantData.nextSessionId}`;
+            plantData.nextSessionId += 1; // Increment the counter for the next outbreak
         }
+        
+        const sessionKey = currentSessionKey;
+
+        if (!plantSessions[sessionKey]) {
+          // Initialize new session
+          plantSessions[sessionKey] = {
+            diseaseName: item.latest_disease, 
+            status: "Ongoing",
+            cured: item.cured || false,
+            latestIndex: item.latest_health_index,
+            cureDate: null,
+            items: [],
+          };
+        }
+
+        const session = plantSessions[sessionKey];
+
+        // 3. Only update the session if it's NOT already marked as CURED.
+        if (!session.cured) {
+          session.items.push(item);
+          session.latestIndex = item.latest_health_index;
+        }
+
       } else {
-        if (!lastSession) {
-          sessions.push([item]);
-        } else {
-          const hasOngoingDisease = lastSession.some(
-            (i) => i.latest_disease.toLowerCase() !== "healthy" && !i.cured
-          );
-          if (hasOngoingDisease) {
-            lastSession.push(item);
-          } else {
-            sessions.push([item]);
+        // --- LOGIC FOR HEALTHY IMAGE (The Curing Mechanism) ---
+        
+        // 1. Identify the MOST RECOVERED (HIGHEST INDEX) UN-CURED session
+        let bestSessionKeyToCure = null;
+        let highestDiseaseIndex = -1; 
+
+        for (const [key, session] of Object.entries(plantSessions)) {
+          // Check only active disease sessions
+          if (session.diseaseName !== "healthy" && !session.cured) {
+              const currentSessionIndex = session.latestIndex;
+              
+              // Find the session that is "most healthy" (highest index)
+              if (currentSessionIndex > highestDiseaseIndex) {
+                  highestDiseaseIndex = currentSessionIndex;
+                  bestSessionKeyToCure = key;
+              }
+          }
+        }
+        
+        // 2. Compare new healthy index against the best active index
+        if (bestSessionKeyToCure) {
+          const sessionToCure = plantSessions[bestSessionKeyToCure];
+          
+          // CURE CONDITION: The healthy image's index is higher than the most recovered session's index
+          if (item.latest_health_index > sessionToCure.latestIndex) { 
+              // Mark the most recovered session as CURED and lock it
+              sessionToCure.status = "Cured";
+              sessionToCure.cured = true;
+              sessionToCure.cureDate = new Date(item.created_at);
+
+              // Add the Curing image as the final event for this session
+              sessionToCure.items.push(item);
           }
         }
       }
 
       return acc;
     }, {});
+    
+    // Final transformation: Convert nested objects into renderable arrays for the JSX map
+    const renderableHistory = {};
+    for (const plantKey in groupedHistory) {
+      // Filter out only the session objects that have prediction items 
+      renderableHistory[plantKey] = Object.values(groupedHistory[plantKey].sessions)
+                                          .filter(session => session.items.length > 0);
+    }
+  
+  // #############################################################
+  // # END CORE LOGIC REPLACEMENT                              #
+  // #############################################################
 
   return (
     <>
@@ -122,7 +207,8 @@ export default function History({ username, setUser }) {
         ) : history.length === 0 ? (
           <p className="text-center text-gray-500">{t("no_predictions_yet")}</p>
         ) : (
-          Object.entries(groupedHistory).map(([plantKey, sessions]) => (
+          // Use renderableHistory for iteration
+          Object.entries(renderableHistory).map(([plantKey, sessions]) => (
             <div key={plantKey} className="mb-4">
               <button
                 onClick={() => toggleGroup(plantKey)}
@@ -133,21 +219,19 @@ export default function History({ username, setUser }) {
               </button>
 
               {openGroups[plantKey] &&
-                [...sessions].reverse().map((session, idx) => (
+                [...sessions].reverse().map((sessionData, idx) => ( // Use sessionData object
                   <details
-                    key={idx}
+                    key={sessionData.items[0].history_id || idx} // Use the first item's ID for key
                     className="mt-2 border rounded-lg bg-white shadow-sm"
                   >
                     <summary className="p-2 cursor-pointer font-medium bg-gray-100 rounded">
-                      {t("session_label")} {sessions.length - idx} (
-                      {session[session.length - 1].cured ||
-                      session[session.length - 1].latest_disease.toLowerCase() === "healthy"
-                        ? t("cured_label")
-                        : t("ongoing_label")}
+                      {/* Display the name of the disease for the session */}
+                      {sessionData.diseaseName} (
+                      {sessionData.cured ? t("cured_label") : t("ongoing_label")}
                       )
                     </summary>
                     <div className="p-2 flex flex-col gap-2">
-                      {session.map((item) => (
+                      {sessionData.items.map((item) => ( // Iterate over sessionData.items
                         <div
                           key={item.history_id}
                           className="bg-gray-50 p-2 rounded shadow-sm"

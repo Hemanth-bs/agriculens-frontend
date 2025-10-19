@@ -25,8 +25,9 @@ export default function Navbar({
   return (
     <nav className="w-full bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Agriculens Logo and Name */}
         <div
-          className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 cursor-pointer"
+          className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 cursor-pointer ml-1" // moved slightly to the right
           onClick={() => navigate("/home")}
         >
           <img
@@ -39,6 +40,7 @@ export default function Navbar({
           </span>
         </div>
 
+        {/* Buttons and Language Selector */}
         <div className="flex items-center gap-3">
           {showHomeButton && (
             <button

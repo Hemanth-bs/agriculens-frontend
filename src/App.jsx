@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Upload from "./pages/Upload";
 import Results from "./pages/Results";
 import History from "./pages/History";
+import ChatPage from "./pages/ChatPage"; // ✅ NEW IMPORT
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 
@@ -28,7 +29,11 @@ function App() {
 
   if (loading) {
     // Prevent redirect flicker before localStorage loads
-    return <div className="flex items-center justify-center h-screen text-green-700">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen text-green-700">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -75,14 +80,23 @@ function App() {
           />
 
           <Route
-  path="/history"
-  element={
-    <ProtectedRoute username={user?.username}>
-      <History username={user?.username} setUser={setUser} />
-    </ProtectedRoute>
-  }
-/>
+            path="/history"
+            element={
+              <ProtectedRoute username={user?.username}>
+                <History username={user?.username} setUser={setUser} />
+              </ProtectedRoute>
+            }
+          />
 
+          {/* ✅ New Chat Page route */}
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute username={user?.username}>
+                <ChatPage username={user?.username} setUser={setUser} />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />

@@ -9,29 +9,52 @@ export default function History({ username, setUser }) {
   const [openGroups, setOpenGroups] = useState({});
   const navigate = useNavigate();
 
-  // Group history by "plant + disease" and create sessions
-  const groupedHistory = history.reduce((acc, item) => {
-    const key = `${item.plant} - ${item.latest_disease}`;
-    if (!acc[key]) acc[key] = [];
+  // 🧩 Group sessions by plant and time
+  const groupedHistory = history
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    .reduce((acc, item) => {
+      const plantKey = item.plant;
+      const disease = item.latest_disease?.toLowerCase();
+      const isHealthy = disease === "healthy" || item.cured;
 
-    const lastSession = acc[key][acc[key].length - 1];
+      if (!acc[plantKey]) acc[plantKey] = [];
 
-    if (!lastSession) {
-      // No session exists, create a new one
-      acc[key].push([item]);
-    } else {
-      // Check if last session already has a cured entry
-      const isLastSessionCured = lastSession.some((i) => i.cured);
-      if (!isLastSessionCured) {
-        lastSession.push(item); // Append to ongoing session
+      const sessions = acc[plantKey];
+      const lastSession = sessions[sessions.length - 1];
+      const lastItem = lastSession ? lastSession[lastSession.length - 1] : null;
+
+      // 🦠 Diseased leaf logic
+      if (!isHealthy) {
+        if (
+          !lastSession ||
+          lastSession.some((i) => i.cured || i.latest_disease.toLowerCase() === "healthy") ||
+          (lastItem && lastItem.latest_disease.toLowerCase() !== disease)
+        ) {
+          sessions.push([item]);
+        } else {
+          lastSession.push(item);
+        }
       } else {
-        acc[key].push([item]); // Start a new session
+        // ✅ Healthy/Cured leaf logic
+        if (!lastSession) {
+          sessions.push([item]);
+        } else {
+          const hasOngoingDisease = lastSession.some(
+            (i) => i.latest_disease.toLowerCase() !== "healthy" && !i.cured
+          );
+
+          if (hasOngoingDisease) {
+            lastSession.push(item);
+          } else {
+            sessions.push([item]);
+          }
+        }
       }
-    }
 
-    return acc;
-  }, {});
+      return acc;
+    }, {});
 
+  // 🧠 Fetch history from API
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -65,6 +88,7 @@ export default function History({ username, setUser }) {
     setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // 🧭 UI Rendering
   return (
     <>
       <Navbar
@@ -97,52 +121,53 @@ export default function History({ username, setUser }) {
             No predictions yet. Upload one to get started!
           </p>
         ) : (
-          Object.entries(groupedHistory).map(([key, sessions]) => (
-            <div key={key} className="mb-4">
-              {/* Crop + Disease Header */}
+          Object.entries(groupedHistory).map(([plantKey, sessions]) => (
+            <div key={plantKey} className="mb-4">
               <button
-                onClick={() => toggleGroup(key)}
+                onClick={() => toggleGroup(plantKey)}
                 className="w-full bg-white border border-green-400 text-green-700 px-4 py-2 rounded shadow hover:bg-green-50 transition flex justify-between items-center"
               >
-                <span className="font-semibold text-lg">{key}</span>
-                <span>{openGroups[key] ? "▲" : "▼"}</span>
+                <span className="font-semibold text-lg">{plantKey}</span>
+                <span>{openGroups[plantKey] ? "▲" : "▼"}</span>
               </button>
 
-              {/* Collapsible sessions */}
-              {openGroups[key] &&
-                sessions.map((session, idx) => (
-                  <details
-                    key={idx}
-                    className="mt-2 border rounded-lg bg-white shadow-sm"
-                  >
-                    <summary className="p-2 cursor-pointer font-medium bg-gray-100 rounded">
-                      Session {idx + 1} (
-                      {session[session.length - 1].cured
-                        ? "✅ Cured"
-                        : "🦠 Ongoing"}
-                      )
-                    </summary>
-                    <div className="p-2 flex flex-col gap-2">
-                      {session.map((item) => (
-                        <div
-                          key={item.history_id}
-                          className="bg-gray-50 p-2 rounded shadow-sm"
-                        >
-                          <p>Disease: {item.latest_disease}</p>
-                          <p>Health Index: {item.latest_health_index}%</p>
-                          <p className="text-sm text-gray-500">
-                            {new Date(item.created_at).toLocaleString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                ))}
+              {openGroups[plantKey] &&
+                [...sessions] // create a shallow copy
+                  .reverse() // reverse to show most recent first
+                  .map((session, idx) => (
+                    <details
+                      key={idx}
+                      className="mt-2 border rounded-lg bg-white shadow-sm"
+                    >
+                      <summary className="p-2 cursor-pointer font-medium bg-gray-100 rounded">
+                        Session {sessions.length - idx} (
+                        {session[session.length - 1].cured ||
+                        session[session.length - 1].latest_disease.toLowerCase() ===
+                          "healthy"
+                          ? "✅ Cured"
+                          : "🦠 Ongoing"}
+                        )
+                      </summary>
+                      <div className="p-2 flex flex-col gap-2">
+                        {session.map((item) => (
+                          <div
+                            key={item.history_id}
+                            className="bg-gray-50 p-2 rounded shadow-sm"
+                          >
+                            <p>Disease: {item.latest_disease}</p>
+                            <p>Health Index: {item.latest_health_index}%</p>
+                            <p className="text-sm text-gray-500">
+                              {new Date(item.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  ))}
             </div>
           ))
         )}
 
-        {/* Chatbot Button */}
         <ChatbotButton />
       </div>
     </>

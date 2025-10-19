@@ -126,8 +126,8 @@ export default function Upload({ username, setUser }) {
   }
 });
     } catch (error) {
-      console.error("Error uploading image:", error);
-      alert("Error uploading image. Make sure your file is valid and try again.");
+      console.error("Error:", error);
+      alert("The temporary token has expired. Please relogin to access your account.");
     } finally {
       setLoading(false);
     }

@@ -15,10 +15,18 @@ export default function History({ username, setUser }) {
     if (!acc[key]) acc[key] = [];
 
     const lastSession = acc[key][acc[key].length - 1];
-    if (!lastSession || lastSession[lastSession.length - 1].cured) {
+
+    if (!lastSession) {
+      // No session exists, create a new one
       acc[key].push([item]);
     } else {
-      lastSession.push(item);
+      // Check if last session already has a cured entry
+      const isLastSessionCured = lastSession.some((i) => i.cured);
+      if (!isLastSessionCured) {
+        lastSession.push(item); // Append to ongoing session
+      } else {
+        acc[key].push([item]); // Start a new session
+      }
     }
 
     return acc;

@@ -257,6 +257,7 @@ export default function ChatPage({ username, setUser }) {
               onClick={() => {
                 setActiveChatId(null);
                 setMessages([]);
+                setIsSidebarOpen(false);
               }}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold text-green-800 bg-green-100 rounded-md hover:bg-green-200 transition"
             >
@@ -272,7 +273,10 @@ export default function ChatPage({ username, setUser }) {
               {chatList.map((chat) => (
                 <li key={chat.chat_id} className="flex justify-between items-center group relative">
                   <button
-                    onClick={() => setActiveChatId(chat.chat_id)}
+                    onClick={() => {
+                      setActiveChatId(chat.chat_id);
+                      setIsSidebarOpen(false);
+                    }}
                     className={`flex-1 text-left p-3 text-sm border-l-4 transition-all ${
                       activeChatId === chat.chat_id
                         ? "bg-green-100 border-green-600 font-semibold text-green-800"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
@@ -12,15 +12,14 @@ const languageMap = {
   kn: "Kannada",
   ta: "Tamil",
   te: "Telugu",
-  ml: "Malayalam"
-  // add more if needed
+  ml: "Malayalam",
 };
 
 // Translate plant & disease from class_name safely
 const translateClassName = (className, t) => {
   if (!className) return { plant: "Unknown", disease: "Unknown" };
 
-  const normalized = className.replace(/__+/g, "_").replace(/\s+/g, "_").toLowerCase();
+  const normalized = className.replace(/\++/g, "").replace(/\s+/g, "").toLowerCase();
 
   let plantKey = null;
   let diseaseKey = null;
@@ -28,15 +27,12 @@ const translateClassName = (className, t) => {
   const plants = t("plants", { returnObjects: true });
   const diseases = t("diseases", { returnObjects: true });
 
-  // Find plant
   Object.keys(plants).forEach((key) => {
     if (normalized.startsWith(key.toLowerCase())) plantKey = key;
   });
 
-  // Disease part
   let diseasePart = plantKey ? normalized.slice(plantKey.length).replace(/^_+/, "") : "";
 
-  // Find disease
   Object.keys(diseases).forEach((key) => {
     if (diseasePart.includes(key.toLowerCase())) diseaseKey = key;
   });
@@ -59,15 +55,88 @@ export default function Results({ username, setUser }) {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Determine plant & disease from class_name
+  // ---------------------------
+  // FIXED TTS (manual resume for Android Chrome)
+  // ---------------------------
+  const [utterances, setUtterances] = useState([]);
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const cleanTextForSpeech = (text) => {
+    if (!text) return "";
+    return text
+      .replace(/(\*|_|~|`|>)/g, "")
+      .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+      .replace(/#+\s?/g, "")
+      .replace(/^\s+|\s+$/g, "");
+  };
+
   const { plant, disease } = prediction
     ? translateClassName(prediction.class_name || prediction.prediction, t)
     : { plant: "", disease: "" };
 
-  // Get friendly language name
   const languageName = languageMap[i18n.language] || "English";
 
+  const splitIntoSentences = (text) => {
+    return text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+  };
+
+  const speakFromIndex = (startIndex, sentences, lang) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+
+    for (let i = startIndex; i < sentences.length; i++) {
+      const utter = new SpeechSynthesisUtterance(sentences[i].trim());
+      utter.lang = lang;
+      utter.onend = () => setCurrentSentenceIndex(i + 1);
+      window.speechSynthesis.speak(utter);
+    }
+    setIsPlaying(true);
+    setIsPaused(false);
+  };
+
+  const speakSuggestions = () => {
+    if (!suggestions) return;
+    const cleanedText = cleanTextForSpeech(suggestions);
+    const langMap = {
+      en: "en-IN",
+      hi: "hi-IN",
+      ta: "ta-IN",
+      te: "te-IN",
+      kn: "kn-IN",
+      ml: "ml-IN",
+    };
+    const lang = langMap[i18n.language] || "en-IN";
+
+    // Case 1 — If currently speaking → Pause
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+      setIsPaused(true);
+      return;
+    }
+
+    // Case 2 — If paused → Resume from last sentence
+    if (isPaused) {
+      speakFromIndex(currentSentenceIndex, utterances, lang);
+      return;
+    }
+
+    // Case 3 — Start fresh
+    const sentences = splitIntoSentences(cleanedText);
+    setUtterances(sentences);
+    setCurrentSentenceIndex(0);
+    speakFromIndex(0, sentences, lang);
+  };
+
+  useEffect(() => {
+    return () => window.speechSynthesis.cancel();
+  }, []);
+
+  // ---------------------------
   // Fetch chatbot suggestions
+  // ---------------------------
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!prediction) return;
@@ -113,7 +182,6 @@ Do NOT include any introductions — start directly with the treatment details.`
     fetchSuggestions();
   }, [prediction, weather, plant, disease, t, languageName]);
 
-  // Determine disease color
   const getDiseaseColor = (diseaseName) => {
     if (!diseaseName) return "text-gray-600";
     return diseaseName.toLowerCase() === t("diseases.healthy").toLowerCase()
@@ -123,22 +191,14 @@ Do NOT include any introductions — start directly with the treatment details.`
 
   return (
     <>
-      <Navbar
-        username={username}
-        setUser={setUser}
-        showHomeButton={true}
-        showLogoutButton={false}
-      />
+      <Navbar username={username} setUser={setUser} showHomeButton={true} showLogoutButton={false} />
 
       <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-50 flex flex-col items-center justify-center p-4">
         <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg flex flex-col gap-6 relative">
-          <h1 className="text-3xl font-bold text-green-700 text-center mb-4">
-            {t("results")}
-          </h1>
+          <h1 className="text-3xl font-bold text-green-700 text-center mb-4">{t("results")}</h1>
 
           {prediction ? (
             <div className="flex flex-col items-center gap-6 w-full">
-              {/* Prediction Image */}
               {prediction.image_url ? (
                 <div className="w-full h-72 bg-gray-50 rounded-xl overflow-hidden shadow-inner border border-gray-200">
                   <img
@@ -151,28 +211,20 @@ Do NOT include any introductions — start directly with the treatment details.`
                 <p className="text-gray-500 mt-4 text-center">{t("no_image_available")}</p>
               )}
 
-              {/* Prediction Details */}
               <div className="mt-4 p-4 border rounded-lg w-full text-center shadow-sm bg-white space-y-2">
                 <h2 className="text-2xl font-bold flex flex-col items-center">
                   <span className="text-green-700">{plant}</span>
                   <span className={`text-xl ${getDiseaseColor(disease)}`}>{disease}</span>
                 </h2>
                 <p className="text-gray-700">
-                  {t("confidence")}:{" "}
-                  {prediction.confidence ? `${prediction.confidence.toFixed(2)}%` : "N/A"}
+                  {t("confidence")}: {prediction.confidence ? `${prediction.confidence.toFixed(2)}%` : "N/A"}
                 </p>
-                <p className="text-gray-700">
-                  {t("health_index")}: {prediction.health_index || "N/A"}
-                </p>
+                <p className="text-gray-700"> {t("health_index")}: {prediction.health_index || "N/A"} </p>
                 <p className="text-gray-500 text-sm">
-                  {prediction.created_at
-                    ? `${t("predicted_at")}: ${new Date(prediction.created_at).toLocaleString()}`
-                    : ""}
+                  {prediction.created_at ? `${t("predicted_at")}: ${new Date(prediction.created_at).toLocaleString()}` : ""}
                 </p>
                 {prediction.prediction && (
-                  <p className="text-gray-500 text-sm">
-                    {t("prediction_label")}: {prediction.prediction}
-                  </p>
+                  <p className="text-gray-500 text-sm"> {t("prediction_label")}: {prediction.prediction} </p>
                 )}
                 {weather && (
                   <p className="text-gray-600 text-sm mt-1">
@@ -182,22 +234,27 @@ Do NOT include any introductions — start directly with the treatment details.`
                 )}
               </div>
 
-              {/* Suggestions */}
               <button
                 onClick={() => setShowSuggestions(!showSuggestions)}
                 className="mt-2 bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-all w-full"
               >
-                {showSuggestions
-                  ? t("hide_care_suggestions")
-                  : t("show_care_suggestions")}
+                {showSuggestions ? t("hide_care_suggestions") : t("show_care_suggestions")}
               </button>
 
               {showSuggestions && (
-                <div className="mt-4 w-full p-4 border rounded-lg bg-gray-50 shadow-inner text-left max-h-96 overflow-y-auto">
+                <div className="mt-4 w-full p-4 border rounded-lg bg-gray-50 shadow-inner text-left max-h-96 overflow-y-auto flex flex-col gap-2">
                   {loadingSuggestions ? (
                     <p className="text-gray-600 text-center">{t("loading_suggestions")}</p>
                   ) : (
-                    <ReactMarkdown>{suggestions}</ReactMarkdown>
+                    <>
+                      <ReactMarkdown>{suggestions}</ReactMarkdown>
+                      <button
+                        onClick={speakSuggestions}
+                        className="mt-2 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition w-full"
+                      >
+                        {isPlaying ? t("pause_voice") : isPaused ? t("resume_voice") : t("play_voice")}
+                      </button>
+                    </>
                   )}
                 </div>
               )}

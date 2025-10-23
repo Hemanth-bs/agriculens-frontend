@@ -23,6 +23,14 @@ export default function ChatPage({ username, setUser }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentTTSMessage, setCurrentTTSMessage] = useState(null);
+    const cleanTextForSpeech = (text) => {
+    if (!text) return "";
+    return text
+      .replace(/(\*|_|~|`|>)/g, "")
+      .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+      .replace(/#+\s?/g, "")
+      .replace(/^\s+|\s+$/g, "");
+  };
   const utteranceRef = useRef(null);
 
   const chatEndRef = useRef(null);
@@ -200,54 +208,68 @@ export default function ChatPage({ username, setUser }) {
     }
   };
 
-  // -----------------------------
-  // TTS: Play / Pause / Resume
-  // -----------------------------
-  const speakMessage = (text) => {
-    if (!window.speechSynthesis) return;
+// -----------------------------
+// TTS: Play / Pause / Resume (Manual Sentence Resume Fix)
+// -----------------------------
+const [utterances, setUtterances] = useState([]);
+const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
 
-    if (currentTTSMessage === text && isPlaying) {
-      window.speechSynthesis.pause();
-      setIsPlaying(false);
-      setIsPaused(true);
-      return;
-    }
+const splitIntoSentences = (text) => {
+  return text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+};
 
-    if (currentTTSMessage === text && isPaused) {
-      window.speechSynthesis.resume();
-      setIsPlaying(true);
-      setIsPaused(false);
-      return;
-    }
+const speakFromIndex = (startIndex, sentences, lang) => {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
 
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utteranceRef.current = utterance;
-    setCurrentTTSMessage(text);
+  for (let i = startIndex; i < sentences.length; i++) {
+    const utter = new SpeechSynthesisUtterance(sentences[i].trim());
+    utter.lang = lang;
+    utter.onend = () => setCurrentSentenceIndex(i + 1);
+    window.speechSynthesis.speak(utter);
+  }
+  setIsPlaying(true);
+  setIsPaused(false);
+};
 
-    const langMap = {
-      hi: "hi-IN",
-      ta: "ta-IN",
-      te: "te-IN",
-      kn: "kn-IN",
-      ml: "ml-IN",
-      en: "en-IN",
-    };
-    utterance.lang = langMap[i18n.language] || "en-IN";
-    window.speechSynthesis.speak(utterance);
-    setIsPlaying(true);
-    setIsPaused(false);
+const speakMessage = (text) => {
+  if (!window.speechSynthesis) return;
 
-    utterance.onend = () => {
-      setIsPlaying(false);
-      setIsPaused(false);
-      setCurrentTTSMessage(null);
-    };
+  const cleanedText = cleanTextForSpeech(text); // <— CLEAN IT HERE
+
+  const langMap = {
+    hi: "hi-IN",
+    ta: "ta-IN",
+    te: "te-IN",
+    kn: "kn-IN",
+    ml: "ml-IN",
+    en: "en-IN",
   };
+  const lang = langMap[i18n.language] || "en-IN";
 
-  useEffect(() => {
-    return () => window.speechSynthesis.cancel();
-  }, []);
+  // CASE 1: same text playing → pause
+  if (currentTTSMessage === text && isPlaying) {
+    window.speechSynthesis.cancel();
+    setIsPlaying(false);
+    setIsPaused(true);
+    return;
+  }
+
+  // CASE 2: same text paused → resume
+  if (currentTTSMessage === text && isPaused) {
+    speakFromIndex(currentSentenceIndex, utterances, lang);
+    return;
+  }
+
+  // CASE 3: new text
+  window.speechSynthesis.cancel();
+  const sentences = splitIntoSentences(cleanedText); // <— use cleanedText
+  setUtterances(sentences);
+  setCurrentSentenceIndex(0);
+  setCurrentTTSMessage(text);
+  speakFromIndex(0, sentences, lang);
+};
+
 
   // -----------------------------
   // Speech Recognition

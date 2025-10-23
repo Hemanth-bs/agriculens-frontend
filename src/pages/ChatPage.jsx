@@ -4,21 +4,32 @@ import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar";
 
 const API_BASE_URL = "https://mithun23112005-agriculens.hf.space";
-const GEMINI_API_URL = "https://chatbotserver-925w.onrender.com/chat";
+const GEMINI_API_URL = "https://mithun23112005-agriculens.hf.space/chat/generate";
 
 export default function ChatPage({ username, setUser }) {
   const { t, i18n } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState(null);
   const [chatList, setChatList] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [deleteModalChat, setDeleteModalChat] = useState(null);
   const [notification, setNotification] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // 🔊 TTS states
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [currentTTSMessage, setCurrentTTSMessage] = useState(null);
+  const utteranceRef = useRef(null);
+
   const chatEndRef = useRef(null);
 
+  // -----------------------------
+  // Utility Functions
+  // -----------------------------
   const getToken = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     return user?.token;
@@ -36,6 +47,9 @@ export default function ChatPage({ username, setUser }) {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
+  // -----------------------------
+  // Fetch Chat List
+  // -----------------------------
   const fetchChatList = useCallback(async () => {
     const token = getToken();
     if (!token) return;
@@ -58,6 +72,9 @@ export default function ChatPage({ username, setUser }) {
     fetchChatList();
   }, [fetchChatList]);
 
+  // -----------------------------
+  // Fetch Messages
+  // -----------------------------
   useEffect(() => {
     const fetchMessages = async () => {
       if (!activeChatId) {
@@ -74,7 +91,7 @@ export default function ChatPage({ username, setUser }) {
         if (res.ok) {
           const data = await res.json();
           const formattedMessages = (data.messages || []).map((msg) => ({
-            sender: msg.role,
+            sender: msg.role === "model" ? "bot" : msg.role,
             text: msg.content,
             time: new Date(msg.createdAt || Date.now()),
           }));
@@ -88,19 +105,26 @@ export default function ChatPage({ username, setUser }) {
       }
     };
 
+    // Stop any TTS when switching chats
+    window.speechSynthesis.cancel();
+    setIsPlaying(false);
+    setIsPaused(false);
+    setCurrentTTSMessage(null);
+
     fetchMessages();
   }, [activeChatId, t]);
 
+  // -----------------------------
+  // Send Message
+  // -----------------------------
   const sendMessage = async () => {
     if (!input.trim() || isTyping) return;
     const token = getToken();
     if (!token) return;
 
     let currentChatId = activeChatId;
-    let isNewChat = false;
 
     if (!currentChatId) {
-      isNewChat = true;
       try {
         const res = await fetch(`${API_BASE_URL}/chat`, {
           method: "POST",
@@ -131,12 +155,17 @@ export default function ChatPage({ username, setUser }) {
     try {
       const response = await fetch(GEMINI_API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           message: input,
           language: i18n.language || "en",
+          chat_id: currentChatId,
         }),
       });
+
       const data = await response.json();
       const botMessage = {
         sender: "bot",
@@ -171,6 +200,102 @@ export default function ChatPage({ username, setUser }) {
     }
   };
 
+  // -----------------------------
+  // TTS: Play / Pause / Resume
+  // -----------------------------
+  const speakMessage = (text) => {
+    if (!window.speechSynthesis) return;
+
+    if (currentTTSMessage === text && isPlaying) {
+      window.speechSynthesis.pause();
+      setIsPlaying(false);
+      setIsPaused(true);
+      return;
+    }
+
+    if (currentTTSMessage === text && isPaused) {
+      window.speechSynthesis.resume();
+      setIsPlaying(true);
+      setIsPaused(false);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utteranceRef.current = utterance;
+    setCurrentTTSMessage(text);
+
+    const langMap = {
+      hi: "hi-IN",
+      ta: "ta-IN",
+      te: "te-IN",
+      kn: "kn-IN",
+      ml: "ml-IN",
+      en: "en-IN",
+    };
+    utterance.lang = langMap[i18n.language] || "en-IN";
+    window.speechSynthesis.speak(utterance);
+    setIsPlaying(true);
+    setIsPaused(false);
+
+    utterance.onend = () => {
+      setIsPlaying(false);
+      setIsPaused(false);
+      setCurrentTTSMessage(null);
+    };
+  };
+
+  useEffect(() => {
+    return () => window.speechSynthesis.cancel();
+  }, []);
+
+  // -----------------------------
+  // Speech Recognition
+  // -----------------------------
+  const toggleListening = () => {
+    if (isListening) {
+      recognition?.stop();
+      return;
+    }
+
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      alert("Speech recognition not supported in this browser.");
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recog = new SpeechRecognition();
+    setRecognition(recog);
+
+    recog.lang = i18n.language || "en-IN";
+    recog.interimResults = false;
+    recog.maxAlternatives = 1;
+
+    recog.onstart = () => {
+      setIsListening(true);
+      showNotification(t("listening"));
+    };
+
+    recog.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+      showNotification(t("speech_captured"));
+    };
+
+    recog.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      showNotification(t("speech_error"));
+      setIsListening(false);
+    };
+
+    recog.onend = () => setIsListening(false);
+
+    recog.start();
+  };
+
+  // -----------------------------
+  // Delete Chat
+  // -----------------------------
   const handleDeleteChat = async (chat_id) => {
     const token = getToken();
     if (!token) return;
@@ -196,6 +321,9 @@ export default function ChatPage({ username, setUser }) {
     }
   };
 
+  // -----------------------------
+  // Render
+  // -----------------------------
   return (
     <div className="flex flex-col h-screen bg-white">
       <Navbar
@@ -237,11 +365,11 @@ export default function ChatPage({ username, setUser }) {
       )}
 
       <div className="flex flex-1 overflow-hidden min-h-0">
+        {/* Sidebar */}
         <aside
           className={`bg-gray-50 border-r flex flex-col overflow-hidden transform transition-transform duration-300 ease-in-out
             ${isSidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-0"}
-            fixed sm:relative h-full z-40
-          `}
+            fixed sm:relative h-full z-40`}
         >
           <div className="p-2 border-b flex flex-col flex-shrink-0">
             <div className="flex justify-between items-center mb-1">
@@ -308,35 +436,50 @@ export default function ChatPage({ username, setUser }) {
           </button>
         )}
 
+        {/* Chat Area */}
         <main className="flex-1 flex flex-col min-h-0 transition-all duration-300 relative">
           <div className="flex-1 flex flex-col overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && !isTyping && (
               <div className="text-center text-gray-500 my-auto flex flex-col items-center">
-                <img
-                  src="/Agriculens_icon.png"
-                  alt="Logo"
-                  className="w-16 h-16 mb-4"
-                />
+                <img src="/Agriculens_icon.png" alt="Logo" className="w-16 h-16 mb-4" />
                 <h2 className="text-xl">{t("chat_welcome")}</h2>
               </div>
             )}
+
             {messages.map((msg, idx) => (
               <div
                 key={idx}
                 className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
               >
                 <div
-                  className={`max-w-[75%] px-4 py-2 rounded-lg prose prose-sm ${
+                  className={`relative max-w-[75%] px-4 py-2 rounded-lg prose prose-sm ${
                     msg.sender === "user"
                       ? "bg-green-600 text-white rounded-br-none"
-                      : "bg-gray-200 text-gray-800 rounded-bl-none"
+                      : "bg-gray-200 text-gray-800 rounded-bl-none pb-10"
                   }`}
                 >
                   <ReactMarkdown>{msg.text}</ReactMarkdown>
+
+                  {msg.sender === "bot" && (
+                    <button
+                      onClick={() => speakMessage(msg.text)}
+                      className="absolute bottom-1 right-1 text-green-600 hover:text-green-800 text-lg"
+                      title={t("play_sound")}
+                    >
+                      {currentTTSMessage === msg.text
+                        ? isPlaying
+                          ? "⏸"
+                          : isPaused
+                          ? "▶"
+                          : "🔊"
+                        : "🔊"}
+                    </button>
+                  )}
                 </div>
                 <span className="text-xs text-gray-400 mt-1">{formatTime(msg.time)}</span>
               </div>
             ))}
+
             {isTyping && (
               <div className="flex items-center space-x-1 bg-gray-200 text-gray-800 px-3 py-2 rounded-lg w-fit rounded-bl-none animate-pulse">
                 <div className="flex space-x-1">
@@ -346,11 +489,13 @@ export default function ChatPage({ username, setUser }) {
                 </div>
               </div>
             )}
+
             <div ref={chatEndRef} />
           </div>
 
+          {/* Input Area */}
           <div className="sticky bottom-0 bg-white p-4 border-t flex-shrink-0">
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <input
                 type="text"
                 value={input}
@@ -359,6 +504,24 @@ export default function ChatPage({ username, setUser }) {
                 className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               />
+
+              {/* MIC BUTTON */}
+              <button
+                onClick={toggleListening}
+                className={`relative flex items-center justify-center w-10 h-10 rounded-full border transition ${
+                  isListening
+                    ? "bg-red-500 border-red-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+                title={isListening ? t("stop_listening") : t("start_speaking")}
+              >
+                {isListening && (
+                  <span className="absolute inline-flex h-8 w-8 rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                )}
+                🎤
+              </button>
+
+              {/* SEND BUTTON */}
               <button
                 onClick={sendMessage}
                 disabled={isTyping}

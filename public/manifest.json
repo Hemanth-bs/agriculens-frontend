@@ -1,0 +1,23 @@
+{
+  "short_name": "Agriculens",
+  "name": "Agriculens - Crop Disease Detection",
+  "description": "AI-powered crop disease detection and health monitoring for farmers.",
+  "icons": [
+    {
+      "src": "/Agriculens_icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/Agriculens_icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#2f855a",
+  "scope": "/"
+}

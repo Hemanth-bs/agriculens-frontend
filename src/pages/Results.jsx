@@ -149,7 +149,7 @@ export default function Results({ username, setUser }) {
           ? `Weather at time of prediction: ${weather.description}, Temperature: ${weather.temperature}°C, Humidity: ${weather.humidity}%, Latitude: ${weather.lat}, Longitude: ${weather.lon}`
           : "Weather information not available";
 
-        const res = await fetch("https://mithun23112005-agriculens.hf.space/chat/generate", {
+        const res = await fetch("https://chatbotserver-925w.onrender.com/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

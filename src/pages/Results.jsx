@@ -15,6 +15,8 @@ const languageMap = {
   ml: "Malayalam",
 };
 
+
+
 // Translate plant & disease from class_name safely
 const translateClassName = (className, t) => {
   if (!className) return { plant: "Unknown", disease: "Unknown" };

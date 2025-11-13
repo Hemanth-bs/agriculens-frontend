@@ -32,7 +32,7 @@ export default function Navbar({
         >
           <img
             src="/Agriculens_icon.png"
-            alt="Agriculens Logo"
+            alt="Agriculens_Logo"
             className="w-8 h-8 sm:w-10 sm:h-10"
           />
           <span className="text-sm sm:text-xl font-bold text-green-700 text-center">

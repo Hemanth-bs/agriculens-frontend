@@ -1,95 +1,131 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
+
+const GOOGLE_CLIENT_ID =
+  "903401170056-ig22lmqbosd1nj5bsh84mebi52tvh8uv.apps.googleusercontent.com";
 
 function Login({ setUser }) {
   const [usernameInput, setUsernameInput] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+
+    script.onload = () => {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleLogin,
+      });
+
+      window.google.accounts.id.renderButton(
+        document.getElementById("google-login-btn"),
+        { theme: "filled_blue", size: "large", width: "100%" }
+      );
+    };
+
+    document.body.appendChild(script);
+  }, []);
+
+  const handleGoogleLogin = async (response) => {
+    const id_token = response.credential;
+
+    const r = await fetch(
+      "https://mithun23112005-agriculens.hf.space/auth/google",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_token }),
+      }
+    );
+
+    const data = await r.json();
+
+    if (r.ok) {
+      const userData = {
+        username: data.username,
+        userId: data.user_id,
+        token: data.access_token,
+      };
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+      toast.success("Logged in with Google!");
+      navigate("/home");
+    } else {
+      toast.error(data.error || "Google login failed");
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      const response = await fetch(
-        "https://mithun23112005-agriculens.hf.space/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: usernameInput, password }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.user_id && data.access_token) {
-        const userData = {
-          username: usernameInput,
-          userId: data.user_id,
-          token: data.access_token,
-        };
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-        toast.success("Login successful!");
-        navigate("/home");
-      } else {
-        toast.error(data.message || "Login failed");
+    const r = await fetch(
+      "https://mithun23112005-agriculens.hf.space/login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: usernameInput, password }),
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Unable to connect to server.");
-    } finally {
-      setLoading(false);
+    );
+
+    const data = await r.json();
+
+    if (r.ok) {
+      const userData = {
+        username: usernameInput,
+        userId: data.user_id,
+        token: data.access_token,
+      };
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+      toast.success("Login successful!");
+      navigate("/home");
+    } else {
+      toast.error(data.error || "Login failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-50 flex items-center justify-center p-4">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-sm flex flex-col items-center">
+    <div className="min-h-screen bg-green-50 flex items-center justify-center p-4">
+      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-sm text-center">
         <img
           src="/Agriculens_icon.png"
+          className="w-24 mx-auto mb-5"
           alt="Agriculens Logo"
-          className="w-24 h-24 mb-6"
         />
-        <h2 className="text-2xl font-bold text-green-700 mb-6 text-center">
-          Agriculens Login
-        </h2>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4 w-full">
+        <h2 className="text-2xl font-bold text-green-700 mb-6">Login</h2>
+
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <input
             type="text"
             placeholder="Username"
             value={usernameInput}
             onChange={(e) => setUsernameInput(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="p-3 border rounded-lg"
           />
+
           <input
             type="password"
             placeholder="Password"
-            value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="p-3 border rounded-lg"
           />
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-all mt-2 ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
-          >
-            {loading ? "Logging in..." : "Login"}
+
+          <button className="bg-green-600 text-white py-3 rounded-lg">
+            Login
           </button>
         </form>
 
-        <p className="text-gray-500 text-sm text-center mt-4">
-          Don’t have an account?{" "}
-          <Link
-            to="/register"
-            className="text-green-600 font-medium hover:underline"
-          >
-            Register here
+        <div id="google-login-btn" className="mt-5"></div>
+
+        <p className="text-gray-500 text-sm mt-4">
+          Don’t have an account?
+          <Link to="/register" className="text-green-600 ml-1 font-medium">
+            Register
           </Link>
         </p>
       </div>

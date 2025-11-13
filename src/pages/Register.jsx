@@ -23,7 +23,11 @@ function Register() {
 
       window.google.accounts.id.renderButton(
         document.getElementById("google-register-btn"),
-        { theme: "filled_blue", size: "large", width: "100%" }
+        {
+          theme: "filled_blue",
+          size: "large",
+          width: "100%",
+        }
       );
     };
 
@@ -49,8 +53,8 @@ function Register() {
         "user",
         JSON.stringify({
           username: data.username,
-          userId: data.user_id,
-          token: data.access_token,
+            userId: data.user_id,
+            token: data.access_token,
         })
       );
 
@@ -85,14 +89,14 @@ function Register() {
 
   return (
     <div className="min-h-screen bg-green-50 flex items-center justify-center p-4">
-      <div className="bg-white shadow-lg rounded-2xl p-8 max-w-sm w-full text-center">
+      <div className="bg-white shadow-lg rounded-2xl p-8 max-w-sm w-full">
         <img
           src="/Agriculens_icon.png"
           className="w-24 mx-auto mb-5"
           alt="Agriculens Logo"
         />
 
-        <h2 className="text-2xl font-bold text-green-700 mb-6">
+        <h2 className="text-2xl font-bold text-green-700 mb-6 text-center">
           Create Account
         </h2>
 
@@ -101,24 +105,27 @@ function Register() {
             type="text"
             placeholder="Choose Username"
             onChange={(e) => setUsername(e.target.value)}
-            className="p-3 border rounded-lg"
+            className="p-3 border rounded-lg w-full"
           />
 
           <input
             type="password"
             placeholder="Choose Password"
             onChange={(e) => setPassword(e.target.value)}
-            className="p-3 border rounded-lg"
+            className="p-3 border rounded-lg w-full"
           />
 
-          <button className="bg-green-600 text-white py-3 rounded-lg">
+          <button className="bg-green-600 text-white py-3 rounded-lg w-full">
             Register
           </button>
         </form>
 
-        <div id="google-register-btn" className="mt-5"></div>
+        {/* Full-width Google Button Wrapper */}
+        <div className="mt-5 w-full">
+          <div id="google-register-btn" className="w-full"></div>
+        </div>
 
-        <p className="text-gray-500 text-sm mt-4">
+        <p className="text-gray-500 text-sm mt-4 text-center">
           Already have an account?
           <Link to="/" className="text-green-600 ml-1 font-medium">
             Login

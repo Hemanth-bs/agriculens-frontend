@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Landing from "./pages/Landing";  // 🆕 NEW
 import Home from "./pages/Home";
 import Upload from "./pages/Upload";
 import Results from "./pages/Results";
 import History from "./pages/History";
-import ChatPage from "./pages/ChatPage"; // ✅ NEW IMPORT
+import ChatPage from "./pages/ChatPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 
@@ -14,21 +15,20 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage once at startup
+  // Load user stored login session
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) setUser(JSON.parse(savedUser));
     setLoading(false);
   }, []);
 
-  // Persist user in localStorage whenever it changes
+  // Keep user session updated
   useEffect(() => {
     if (user) localStorage.setItem("user", JSON.stringify(user));
     else localStorage.removeItem("user");
   }, [user]);
 
   if (loading) {
-    // Prevent redirect flicker before localStorage loads
     return (
       <div className="flex items-center justify-center h-screen text-green-700">
         Loading...
@@ -41,9 +41,16 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       <Router>
         <Routes>
-          {/* Login and Register */}
+          
+          {/* 🏡 Public Landing Page */}
           <Route
             path="/"
+            element={user ? <Navigate to="/home" /> : <Landing />}
+          />
+
+          {/* 🔐 Login & Register */}
+          <Route
+            path="/login"
             element={user ? <Navigate to="/home" /> : <Login setUser={setUser} />}
           />
           <Route
@@ -51,7 +58,7 @@ function App() {
             element={user ? <Navigate to="/home" /> : <Register />}
           />
 
-          {/* Protected pages */}
+          {/* 🔒 Protected Pages */}
           <Route
             path="/home"
             element={
@@ -88,7 +95,6 @@ function App() {
             }
           />
 
-          {/* ✅ New Chat Page route */}
           <Route
             path="/chat"
             element={
@@ -98,8 +104,9 @@ function App() {
             }
           />
 
-          {/* Fallback */}
+          {/* ❓ Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
+
         </Routes>
       </Router>
     </>

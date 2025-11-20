@@ -195,7 +195,7 @@ Do NOT include any introductions — start directly with the treatment details.`
     <>
       <Navbar username={username} setUser={setUser} showHomeButton={true} showLogoutButton={false} />
 
-      <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-50 flex flex-col items-center justify-center p-4">
+<div className="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-50 flex flex-col items-center justify-center p-4">
         <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg flex flex-col gap-6 relative">
           <h1 className="text-3xl font-bold text-green-700 text-center mb-4">{t("results")}</h1>
 

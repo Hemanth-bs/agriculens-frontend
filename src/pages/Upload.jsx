@@ -140,7 +140,7 @@ export default function Upload({ username, setUser }) {
         showLogoutButton={false}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-50 flex flex-col items-center justify-center p-4">
+<div className="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-50 flex flex-col items-center justify-center p-4">
         <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg flex flex-col gap-6 relative">
           {loading && (
             <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl z-10">

@@ -51,7 +51,7 @@ export default function Home({ username, setUser }) {
         showLogoutButton={true}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-50 flex flex-col items-center justify-center p-4">
+<div className="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-50 flex flex-col items-center justify-center p-4">
         <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg flex flex-col items-center gap-6">
           <h1 className="text-4xl font-bold text-green-700 text-center">
             {t("welcome")}

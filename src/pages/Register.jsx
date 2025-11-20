@@ -123,7 +123,7 @@ function Register() {
 
         <p className="text-gray-500 text-sm mt-4">
           Already have an account?
-          <Link to="/" className="text-green-600 ml-1 font-medium">
+          <Link to="/login" className="text-green-600 ml-1 font-medium">
             Login
           </Link>
         </p>

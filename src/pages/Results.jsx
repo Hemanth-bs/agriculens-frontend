@@ -131,6 +131,12 @@ export default function Results({ username, setUser }) {
     setCurrentSentenceIndex(0);
     speakFromIndex(0, sentences, lang);
   };
+  useEffect(() => {
+  window.speechSynthesis.cancel();
+  setIsPlaying(false);
+  setIsPaused(false);
+  setCurrentSentenceIndex(0);
+}, [i18n.language]);
 
   useEffect(() => {
     return () => window.speechSynthesis.cancel();

@@ -188,7 +188,7 @@ export default function History({ username, setUser }) {
         showHistoryButton={false}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-50 p-6 relative">
+<div className="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-50 p-6 relative">
         <h1 className="text-3xl font-bold text-green-700 text-center mb-4">
           {t("history_title")}
         </h1>

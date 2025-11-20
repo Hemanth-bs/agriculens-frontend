@@ -8,6 +8,7 @@ const GOOGLE_CLIENT_ID =
 function Login({ setUser }) {
   const [usernameInput, setUsernameInput] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false); // 👈 NEW
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,14 +17,12 @@ function Login({ setUser }) {
     script.async = true;
 
     script.onload = () => {
-      if (window.google && window.google.accounts && window.google.accounts.id) {
+      if (window.google?.accounts?.id) {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleLogin,
         });
 
-        // Do NOT force width here — let GSI render its natural button size,
-        // and we'll center it with the wrapper.
         window.google.accounts.id.renderButton(
           document.getElementById("google-login-btn"),
           { theme: "filled_blue", size: "large" }
@@ -32,16 +31,11 @@ function Login({ setUser }) {
     };
 
     document.body.appendChild(script);
-
-    // optional cleanup: remove script on unmount if you prefer
-    return () => {
-      // const s = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
-      // if (s) s.remove();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGoogleLogin = async (response) => {
+    setLoading(true); // 👈 START LOADING
+
     const id_token = response.credential;
 
     const r = await fetch(
@@ -68,10 +62,13 @@ function Login({ setUser }) {
     } else {
       toast.error(data.error || "Google login failed");
     }
+
+    setLoading(false); // 👈 STOP LOADING
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // 👈 START LOADING
 
     const r = await fetch(
       "https://mithun23112005-agriculens.hf.space/login",
@@ -97,10 +94,12 @@ function Login({ setUser }) {
     } else {
       toast.error(data.error || "Login failed");
     }
+
+    setLoading(false); // 👈 STOP LOADING
   };
 
   return (
-    <div className="min-h-screen bg-green-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-50 flex items-center justify-center p-4">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-sm text-center">
         <img
           src="/Agriculens_icon.png"
@@ -126,14 +125,28 @@ function Login({ setUser }) {
             className="p-3 border rounded-lg"
           />
 
-          <button className="bg-green-600 text-white py-3 rounded-lg">
-            Login
+          {/* 🔵 Button With Bouncing Dots Loader */}
+          <button
+            disabled={loading}
+            className={`bg-green-600 text-white py-3 rounded-lg flex items-center justify-center ${
+              loading ? "opacity-70 cursor-not-allowed" : "hover:bg-green-700"
+            }`}
+          >
+            {loading ? (
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-150"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-300"></div>
+              </div>
+            ) : (
+              "Login"
+            )}
           </button>
         </form>
 
         {/* Center the Google button */}
         <div className="mt-5 flex justify-center">
-          <div id="google-login-btn"></div>
+          {<div id="google-login-btn"></div>}
         </div>
 
         <p className="text-gray-500 text-sm mt-4">

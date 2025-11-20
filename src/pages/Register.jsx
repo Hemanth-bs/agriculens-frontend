@@ -5,9 +5,10 @@ import toast from "react-hot-toast";
 const GOOGLE_CLIENT_ID =
   "903401170056-ig22lmqbosd1nj5bsh84mebi52tvh8uv.apps.googleusercontent.com";
 
-function Register() {
+function Register({ setUser }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false); // 👈 NEW
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,21 +17,25 @@ function Register() {
     script.async = true;
 
     script.onload = () => {
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleSignup,
-      });
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleSignup,
+        });
 
-      window.google.accounts.id.renderButton(
-        document.getElementById("google-register-btn"),
-        { theme: "filled_blue", size: "large", width: "100%" }
-      );
+        window.google.accounts.id.renderButton(
+          document.getElementById("google-register-btn"),
+          { theme: "filled_blue", size: "large", width: "100%" }
+        );
+      }
     };
 
     document.body.appendChild(script);
   }, []);
 
   const handleGoogleSignup = async (response) => {
+    setLoading(true); // 👈 START LOADING
+
     const id_token = response.credential;
 
     const r = await fetch(
@@ -45,24 +50,27 @@ function Register() {
     const data = await r.json();
 
     if (r.ok) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          username: data.username,
-          userId: data.user_id,
-          token: data.access_token,
-        })
-      );
+      const userData = {
+        username: data.username,
+        userId: data.user_id,
+        token: data.access_token,
+      };
+
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData); // 👈 FIX: Update React state
 
       toast.success("Signed up with Google!");
       navigate("/home");
     } else {
       toast.error(data.error || "Google signup failed");
     }
+
+    setLoading(false); // 👈 STOP LOADING
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setLoading(true); // 👈 START LOADING
 
     const r = await fetch(
       "https://mithun23112005-agriculens.hf.space/register",
@@ -77,14 +85,16 @@ function Register() {
 
     if (r.ok) {
       toast.success("Registration successful!");
-      navigate("/");
+      navigate("/login");
     } else {
       toast.error(data.error || "Registration failed");
     }
+
+    setLoading(false); // 👈 STOP LOADING
   };
 
   return (
-    <div className="min-h-screen bg-green-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-50 flex items-center justify-center p-4">
       <div className="bg-white shadow-lg rounded-2xl p-8 max-w-sm w-full text-center">
         <img
           src="/Agriculens_icon.png"
@@ -111,15 +121,29 @@ function Register() {
             className="p-3 border rounded-lg"
           />
 
-          <button className="bg-green-600 text-white py-3 rounded-lg">
-            Register
+          {/* 🔵 Button With Bouncing Dots */}
+          <button
+            disabled={loading}
+            className={`bg-green-600 text-white py-3 rounded-lg flex items-center justify-center ${
+              loading ? "opacity-70 cursor-not-allowed" : "hover:bg-green-700"
+            }`}
+          >
+            {loading ? (
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-150"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-300"></div>
+              </div>
+            ) : (
+              "Register"
+            )}
           </button>
         </form>
 
+        {/* Disable Google button while loading */}
         <div className="mt-5 flex justify-center">
-  <div id="google-register-btn"></div>
-  </div>
-
+          {<div id="google-register-btn"></div>}
+        </div>
 
         <p className="text-gray-500 text-sm mt-4">
           Already have an account?

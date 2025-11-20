@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Landing from "./pages/Landing";  // 🆕 NEW
+import Landing from "./pages/Landing"; // 🆕 NEW
 import Home from "./pages/Home";
 import Upload from "./pages/Upload";
 import Results from "./pages/Results";
@@ -15,7 +15,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user stored login session
+  // Load user session from localStorage once at start
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) setUser(JSON.parse(savedUser));
@@ -41,7 +41,7 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       <Router>
         <Routes>
-          
+
           {/* 🏡 Public Landing Page */}
           <Route
             path="/"
@@ -53,9 +53,10 @@ function App() {
             path="/login"
             element={user ? <Navigate to="/home" /> : <Login setUser={setUser} />}
           />
+
           <Route
             path="/register"
-            element={user ? <Navigate to="/home" /> : <Register />}
+            element={user ? <Navigate to="/home" /> : <Register setUser={setUser} />}
           />
 
           {/* 🔒 Protected Pages */}
